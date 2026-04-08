@@ -6,10 +6,11 @@ services:
       context: ./api
       dockerfile: Dockerfile
     ports:
-      - "${API_PORT:-8000}:8000"
+      - "${API_PORT:-8005}:8000"
     env_file: .env
     depends_on:
       - db
+      - redis
     restart: unless-stopped
     networks:
       - pixreveal-net
@@ -22,6 +23,16 @@ services:
       POSTGRES_DB: ${DB_NAME:-pixreveal}
       POSTGRES_USER: ${DB_USER:-postgres}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-changeme}
+    ports:
+      - "5435:5432"
+    restart: unless-stopped
+    networks:
+      - pixreveal-net
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6382:6379"
     restart: unless-stopped
     networks:
       - pixreveal-net

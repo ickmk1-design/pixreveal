@@ -15,4 +15,16 @@ dist/
 .dart_tool/
 .flutter-plugins
 .flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+pubspec.lock
+*.iml
+.idea/
+.vscode/
+*.swp
 .claude/agents
+mobile/.dart_tool/
+mobile/build/
+mobile/android/.gradle/
+mobile/ios/Pods/

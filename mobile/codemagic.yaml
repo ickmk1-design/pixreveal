@@ -1,0 +1,126 @@
+workflows:
+  pixreveal-android:
+    name: PixReveal Android
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    environment:
+      groups:
+        - google_play # PLAY_STORE_CREDENTIALS
+      flutter: stable
+      java: 17
+    scripts:
+      - name: Set up local properties
+        script: echo "flutter.sdk=$HOME/programs/flutter" > android/local.properties
+      - name: Get Flutter packages
+        script: flutter packages pub get
+      - name: Build APK (debug)
+        script: flutter build apk --debug
+      - name: Build AAB (release)
+        script: flutter build appbundle --release
+    artifacts:
+      - build/**/outputs/**/*.apk
+      - build/**/outputs/**/*.aab
+      - build/**/outputs/**/mapping.txt
+    publishing:
+      email:
+        recipients:
+          - info@cytbilisim.com
+        notify:
+          success: true
+          failure: true
+      # Uncomment when ready:
+      # google_play:
+      #   credentials: $PLAY_STORE_CREDENTIALS
+      #   track: internal
+
+  pixreveal-ios:
+    name: PixReveal iOS
+    max_build_duration: 90
+    instance_type: mac_mini_m2
+    environment:
+      groups:
+        - app_store_connect # APP_STORE_CONNECT_KEY, KEY_ID, ISSUER_ID
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.cytbilisim.pixreveal
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: Set up code signing
+        script: xcode-project use-profiles
+      - name: Get Flutter packages
+        script: flutter packages pub get
+      - name: Install CocoaPods
+        script: |
+          cd ios
+          pod install
+      - name: Build IPA
+        script: flutter build ipa --release --export-options-plist=/Users/builder/export_options.plist
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+    publishing:
+      email:
+        recipients:
+          - info@cytbilisim.com
+        notify:
+          success: true
+          failure: true
+      # Uncomment when ready:
+      # app_store_connect:
+      #   auth:
+      #     key_id: $KEY_ID
+      #     issuer_id: $ISSUER_ID
+      #     key: $APP_STORE_CONNECT_KEY
+      #   submit_to_testflight: true
+
+  pixreveal-both:
+    name: PixReveal Full Build
+    max_build_duration: 120
+    instance_type: mac_mini_m2
+    environment:
+      groups:
+        - google_play
+        - app_store_connect
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.cytbilisim.pixreveal
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+      java: 17
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: main
+          include: true
+    scripts:
+      - name: Get Flutter packages
+        script: flutter packages pub get
+      - name: Flutter analyze
+        script: flutter analyze --no-fatal-infos
+      - name: Run tests
+        script: flutter test
+      - name: Build Android AAB
+        script: flutter build appbundle --release
+      - name: Install CocoaPods
+        script: |
+          cd ios
+          pod install
+      - name: Set up iOS code signing
+        script: xcode-project use-profiles
+      - name: Build iOS IPA
+        script: flutter build ipa --release --export-options-plist=/Users/builder/export_options.plist
+    artifacts:
+      - build/**/outputs/**/*.aab
+      - build/ios/ipa/*.ipa
+      - build/**/outputs/**/mapping.txt
+    publishing:
+      email:
+        recipients:
+          - info@cytbilisim.com
+        notify:
+          success: true
+          failure: true
