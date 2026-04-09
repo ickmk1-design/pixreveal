@@ -12,12 +12,32 @@ class DefaultFirebaseOptions {
         return android;
       case TargetPlatform.iOS:
         return ios;
+      case TargetPlatform.linux:
+      case TargetPlatform.macOS:
+      case TargetPlatform.windows:
+        return web;
       default:
         throw UnsupportedError(
           'DefaultFirebaseOptions are not supported for this platform.',
         );
     }
   }
+
+  static bool get isWeb => identical(0, 0.0);
+
+  static FirebaseOptions get currentPlatformOrWeb {
+    if (isWeb) return web;
+    return currentPlatform;
+  }
+
+  static const FirebaseOptions web = FirebaseOptions(
+    apiKey: 'AIzaSyDnkZnwHr-7CMsoQ-1x5Bg1kyYKBtNBloY',
+    appId: '1:432979162987:web:pixreveal9c7e2e',
+    messagingSenderId: '432979162987',
+    projectId: 'pixreveal-prod',
+    authDomain: 'pixreveal-prod.firebaseapp.com',
+    storageBucket: 'pixreveal-prod.firebasestorage.app',
+  );
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyDnkZnwHr-7CMsoQ-1x5Bg1kyYKBtNBloY',

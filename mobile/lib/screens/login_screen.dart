@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -202,7 +202,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     return Column(
       children: [
         // Apple Sign-In (iOS only)
-        if (Platform.isIOS) ...[
+        if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) ...[
           NeonButton(
             text: 'SIGN IN WITH APPLE',
             color: Colors.white,

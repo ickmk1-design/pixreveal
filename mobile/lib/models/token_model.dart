@@ -5,7 +5,7 @@ class TokenModel {
   final DateTime? lastDailyLogin;
 
   const TokenModel({
-    this.tokens = 5,
+    this.tokens = 10,
     this.lives = 3,
     this.adsWatchedToday = 0,
     this.lastDailyLogin,

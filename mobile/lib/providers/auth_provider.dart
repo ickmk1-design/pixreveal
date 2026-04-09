@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
@@ -7,6 +8,7 @@ final authServiceProvider = Provider<AuthService>((ref) => AuthService());
 final iapServiceProvider = Provider<IAPService>((ref) => IAPService());
 
 final authStateProvider = StreamProvider<User?>((ref) {
+  if (kIsWeb) return Stream.value(null);
   return ref.watch(authServiceProvider).authStateChanges;
 });
 

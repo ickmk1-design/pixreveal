@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
-import '../main.dart';
-import '../providers/auth_provider.dart';
 import '../utils/constants.dart';
 import '../widgets/neon_button.dart';
 import '../widgets/token_display.dart';
@@ -19,17 +16,10 @@ class MainMenuScreen extends ConsumerStatefulWidget {
 class _MainMenuScreenState extends ConsumerState<MainMenuScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _pulseController;
-  BannerAd? _bannerAd;
 
   @override
   void initState() {
     super.initState();
-
-    // Load banner ad (only if not ad-free)
-    final userState = ref.read(userProvider);
-    if (!userState.isAdFree) {
-      _bannerAd = ref.read(adServiceProvider).createBanner();
-    }
 
     _pulseController = AnimationController(
       vsync: this,
@@ -66,7 +56,6 @@ class _MainMenuScreenState extends ConsumerState<MainMenuScreen>
   @override
   void dispose() {
     _pulseController.dispose();
-    _bannerAd?.dispose();
     super.dispose();
   }
 
@@ -159,13 +148,6 @@ class _MainMenuScreenState extends ConsumerState<MainMenuScreen>
 
                   const Spacer(flex: 3),
 
-                  // Banner ad
-                  if (_bannerAd != null)
-                    SizedBox(
-                      width: _bannerAd!.size.width.toDouble(),
-                      height: _bannerAd!.size.height.toDouble(),
-                      child: AdWidget(ad: _bannerAd!),
-                    ),
                   const SizedBox(height: 8),
 
                   // Version

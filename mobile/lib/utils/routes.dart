@@ -5,6 +5,7 @@ import '../screens/main_menu_screen.dart';
 import '../screens/game_screen.dart';
 import '../screens/result_screen.dart';
 import '../screens/level_select_screen.dart';
+import '../screens/image_select_screen.dart';
 import '../screens/shop_screen.dart';
 import '../screens/settings_screen.dart';
 import '../screens/legal_screen.dart';
@@ -31,10 +32,18 @@ final router = GoRouter(
       builder: (context, state) => const LevelSelectScreen(),
     ),
     GoRoute(
+      path: '/image-select/:levelId',
+      builder: (context, state) {
+        final levelId = int.parse(state.pathParameters['levelId']!);
+        return ImageSelectScreen(levelId: levelId);
+      },
+    ),
+    GoRoute(
       path: '/game/:levelId',
       builder: (context, state) {
         final levelId = int.parse(state.pathParameters['levelId']!);
-        return GameScreen(levelId: levelId);
+        final imgFile = state.uri.queryParameters['img'] ?? 'level_${((levelId - 1) % 5) + 1}.jpg';
+        return GameScreen(levelId: levelId, imageFile: imgFile);
       },
     ),
     GoRoute(
