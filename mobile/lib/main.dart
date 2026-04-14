@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'services/ad_service.dart' if (dart.library.html) 'services/ad_service_stub.dart';
+import 'services/audio_service.dart';
 import 'utils/theme.dart';
 import 'utils/routes.dart';
 import 'utils/localization.dart';
@@ -14,6 +15,9 @@ void main() async {
 
   // Localization
   await L.init();
+
+  // Audio (silent fallback if no files)
+  await AudioService.init();
 
   // Firebase
   if (!kIsWeb) {
@@ -63,6 +67,18 @@ class PixRevealApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkArcade,
       routerConfig: router,
+      builder: (context, child) {
+        // Constrain to mobile-like width on web, center with black background
+        return Container(
+          color: Colors.black,
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 450),
+              child: child,
+            ),
+          ),
+        );
+      },
     );
   }
 }

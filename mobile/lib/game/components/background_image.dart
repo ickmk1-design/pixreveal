@@ -16,8 +16,9 @@ class BackgroundImage extends Component {
     await super.onLoad();
     try {
       _image = await Flame.images.load(imageFile);
+      // ignore: avoid_print
+      print('Loaded image: $imageFile ${_image!.width}x${_image!.height}');
     } catch (_) {
-      // Fallback: try level_1
       try { _image = await Flame.images.load('level_1.jpg'); } catch (_) {}
     }
   }
@@ -28,8 +29,32 @@ class BackgroundImage extends Component {
   @override
   void render(ui.Canvas canvas) {
     if (_image != null) {
-      final src = ui.Rect.fromLTWH(0, 0, _image!.width.toDouble(), _image!.height.toDouble());
-      canvas.drawImageRect(_image!, src, gameBounds, ui.Paint());
+      // BoxFit.contain: show ENTIRE image inside gameBounds, no cropping
+      final imgW = _image!.width.toDouble();
+      final imgH = _image!.height.toDouble();
+      final imgAspect = imgW / imgH;
+      final boundsAspect = gameBounds.width / gameBounds.height;
+
+      double drawW, drawH;
+      if (imgAspect > boundsAspect) {
+        // Image wider → fit to width, letterbox top/bottom
+        drawW = gameBounds.width;
+        drawH = gameBounds.width / imgAspect;
+      } else {
+        // Image taller → fit to height, pillarbox left/right
+        drawH = gameBounds.height;
+        drawW = gameBounds.height * imgAspect;
+      }
+
+      final offsetX = gameBounds.left + (gameBounds.width - drawW) / 2;
+      final offsetY = gameBounds.top + (gameBounds.height - drawH) / 2;
+
+      final src = ui.Rect.fromLTWH(0, 0, imgW, imgH);
+      final dst = ui.Rect.fromLTWH(offsetX, offsetY, drawW, drawH);
+
+      canvas.drawImageRect(_image!, src, dst, ui.Paint()
+        ..filterQuality = ui.FilterQuality.high
+        ..isAntiAlias = true);
     } else {
       // Colorful gradient fallback
       canvas.drawRect(gameBounds, ui.Paint()

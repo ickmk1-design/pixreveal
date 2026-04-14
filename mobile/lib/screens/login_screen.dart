@@ -154,7 +154,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             const TextSpan(text: 'I accept the '),
                             WidgetSpan(
                               child: GestureDetector(
-                                onTap: () => context.push('/terms'),
+                                onTap: () => context.go('/terms'),
                                 child: const Text(
                                   'Terms of Service',
                                   style: TextStyle(
@@ -170,7 +170,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             const TextSpan(text: ' and '),
                             WidgetSpan(
                               child: GestureDetector(
-                                onTap: () => context.push('/privacy'),
+                                onTap: () => context.go('/privacy'),
                                 child: const Text(
                                   'Privacy Policy',
                                   style: TextStyle(

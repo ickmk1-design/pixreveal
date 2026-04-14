@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AdService {
   // Test Ad Unit IDs (replace with real ones before production)
@@ -24,7 +25,17 @@ class AdService {
   int _levelsSinceLastAd = 0;
   bool _isAdFree = false;
 
-  static const int _levelsBeforeInterstitial = 2;
+  static const int _levelsBeforeInterstitial = 3;
+
+  /// Track level completion. Checks ad-free status first.
+  Future<bool> notifyLevelComplete() async {
+    // Check if ads removed via IAP
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (prefs.getBool('ads_removed') == true) return false;
+    } catch (_) {}
+    return await showInterstitialIfReady();
+  }
 
   Future<void> init() async {
     await MobileAds.instance.initialize();

@@ -14,8 +14,8 @@ class Player extends PositionComponent {
   double _glowPhase = 0;
   double _engineFlicker = 0;
 
-  Player({required this.col, required this.row})
-      : super(size: Vector2.all(22), anchor: Anchor.center);
+  Player({required this.col, required this.row, double size = 16})
+      : super(size: Vector2.all(size), anchor: Anchor.center);
 
   Offset get centerOffset => Offset(position.x, position.y);
 
@@ -35,9 +35,12 @@ class Player extends PositionComponent {
   void render(Canvas canvas) {
     final s = size.x / 2;
     final glow = 0.4 + sin(_glowPhase) * 0.12;
+    // Drawings are designed for 22px reference; scale to actual size
+    final scale = size.x / 22.0;
 
     canvas.save();
     canvas.translate(s, s);
+    canvas.scale(scale);
 
     // Rotate based on direction
     double angle = 0;

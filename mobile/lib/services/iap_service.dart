@@ -1,4 +1,5 @@
 import 'package:purchases_flutter/purchases_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 // RevenueCat product identifiers
 class IAPProducts {
@@ -171,19 +172,53 @@ class IAPService {
   /// Purchase a store product directly
   Future<CustomerInfo?> purchase(StoreProduct product) async {
     try {
-      return await Purchases.purchaseStoreProduct(product);
+      final info = await Purchases.purchaseStoreProduct(product);
+      await _syncEntitlements(info);
+      return info;
     } catch (_) {
       return null;
     }
   }
 
+  /// Purchase remove-ads (non-consumable)
+  Future<bool> purchaseRemoveAds() async {
+    try {
+      final products = await Purchases.getProducts([IAPProducts.removeAds]);
+      if (products.isEmpty) return false;
+      final info = await Purchases.purchaseStoreProduct(products.first);
+      if (info != null) {
+        await _syncEntitlements(info);
+        return true;
+      }
+    } catch (_) {}
+    return false;
+  }
+
   /// Restore previous purchases
   Future<CustomerInfo?> restorePurchases() async {
     try {
-      return await Purchases.restorePurchases();
+      final info = await Purchases.restorePurchases();
+      if (info != null) await _syncEntitlements(info);
+      return info;
     } catch (_) {
       return null;
     }
+  }
+
+  /// Sync entitlements to SharedPreferences after any purchase/restore
+  Future<void> _syncEntitlements(CustomerInfo? info) async {
+    if (info == null) return;
+    final prefs = await SharedPreferences.getInstance();
+
+    final adFree = info.entitlements.active.containsKey(Entitlements.adFree) ||
+                   info.entitlements.active.containsKey(Entitlements.premium);
+    await prefs.setBool('ads_removed', adFree);
+
+    final premium = info.entitlements.active.containsKey(Entitlements.premium);
+    await prefs.setBool('is_premium', premium);
+
+    final customImg = info.entitlements.active.containsKey(Entitlements.customImage) || premium;
+    await prefs.setBool('has_custom_image', customImg);
   }
 
   /// Check if user has a specific entitlement

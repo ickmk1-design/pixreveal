@@ -37,16 +37,41 @@ dependencies:
   google_sign_in: ^6.2.0
   webview_flutter: ^4.10.0
   crypto: ^3.0.0
+  google_fonts: ^6.2.1
+  glassmorphism: ^3.0.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
+  flutter_launcher_icons: ^0.13.1
+  flutter_native_splash: ^2.4.0
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/images/spider_hero.png"
+  min_sdk_android: 21
+  background_color_ios: "#0A0014"
+  remove_alpha_ios: true
+  adaptive_icon_background: "#0A0014"
+  adaptive_icon_foreground: "assets/images/spider_hero.png"
+
+flutter_native_splash:
+  color: "#0A0014"
+  image: assets/images/spider_hero.png
+  android_12:
+    image: assets/images/spider_hero.png
+    color: "#0A0014"
+  ios: true
+  android: true
+  fullscreen: true
 
 flutter:
   uses-material-design: true
   assets:
     - assets/images/
+    - assets/images/ui/
     - assets/audio/
   fonts:
     - family: PressStart2P

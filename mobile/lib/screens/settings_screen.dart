@@ -1,431 +1,405 @@
+import '../utils/localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:http/http.dart' as http;
-import '../utils/constants.dart';
-import '../providers/settings_provider.dart';
-import '../providers/auth_provider.dart';
-import '../widgets/retro_card.dart';
 
-class SettingsScreen extends ConsumerWidget {
+import '../widgets/premium_button.dart';
+import '../widgets/space_background.dart';
+
+class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(settingsProvider);
-    final userState = ref.watch(userProvider);
-    final iap = ref.read(iapServiceProvider);
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
 
+class _SettingsScreenState extends State<SettingsScreen> {
+  bool sfx = true;
+  bool music = true;
+  bool vibration = true;
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.darkBg,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.neonBlue),
-          onPressed: () => context.go('/menu'),
-        ),
-        title: const Text(
-          'SETTINGS',
-          style: TextStyle(
-            fontFamily: 'PressStart2P',
-            fontSize: 14,
-            color: AppColors.neonBlue,
+      body: SpaceBackground(
+        child: SafeArea(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                child: Row(
+                  children: [
+                    _circleButton(Icons.arrow_back_ios_new, () => context.go('/menu')),
+                    Expanded(
+                      child: Center(
+                        child: Text(
+                          L.get('settings'),
+                          style: TextStyle(
+                            color: Color(0xFF98F4FF),
+                            fontSize: 28,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 1.2,
+                            shadows: [Shadow(color: Color(0xAA11DCFF), blurRadius: 18)],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 44),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: ListView(
+                  padding: EdgeInsets.fromLTRB(16, 18, 16, 24),
+                  children: [
+                    _section(
+                      L.get('sound'),
+                      child: Column(
+                        children: [
+                          _switchRow(L.get('sound_effects'), sfx, (v) => setState(() => sfx = v)),
+                          _divider(),
+                          _switchRow(L.get('music'), music, (v) => setState(() => music = v)),
+                          _divider(),
+                          _switchRow(L.get('vibration'), vibration, (v) => setState(() => vibration = v)),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 14),
+                    _section(
+                      L.get('account'),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            L.get('provider_guest'),
+                            style: TextStyle(color: Colors.white70, fontSize: 15),
+                          ),
+                          SizedBox(height: 14),
+                          PremiumButton(
+                            text: L.get('link_account'),
+                            height: 54,
+                            gradient: const [Color(0xFF1A8AFF), Color(0xFF33D7FF)],
+                            onPressed: () => _showLinkAccountSheet(context),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 14),
+                    _section(
+                      L.get('purchases'),
+                      child: PremiumButton(
+                        text: L.get('restore_purchases'),
+                        height: 54,
+                        gradient: const [Color(0xFFFFE18A), Color(0xFFFFB22E)],
+                        onPressed: () {},
+                      ),
+                    ),
+                    SizedBox(height: 14),
+                    _section(
+                      L.get('legal'),
+                      child: Column(
+                        children: [
+                          GestureDetector(
+                            onTap: () => context.go('/privacy'),
+                            child: _arrowRow(L.get('privacy_policy')),
+                          ),
+                          _divider(),
+                          GestureDetector(
+                            onTap: () => context.go('/terms'),
+                            child: _arrowRow(L.get('terms_of_service')),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 14),
+                    GestureDetector(
+                      onTap: () async {
+                        await L.setLang(L.isTr ? 'en' : 'tr');
+                        if (mounted) setState(() {});
+                      },
+                      child: _section(
+                        L.get('language'),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 42,
+                              height: 42,
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12),
+                                color: const Color(0xFF1A2230),
+                                border: Border.all(color: const Color(0x33A8D8FF)),
+                              ),
+                              child: Text(L.isTr ? '🇹🇷' : '🇬🇧', style: const TextStyle(fontSize: 22)),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                L.isTr ? 'Türkçe' : 'English',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ),
+                            const Icon(Icons.swap_horiz_rounded, color: Colors.white70),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 28),
+                    const Center(
+                      child: Text(
+                        'v1.0',
+                        style: TextStyle(color: Colors.white38, fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
-        centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+    );
+  }
+
+  Widget _section(String title, {required Widget child}) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(22),
+        color: const Color(0x22161A23),
+        border: Border.all(color: const Color(0x3363CCFF)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              color: Color(0xFF9AEFFF),
+              fontSize: 16,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 0.8,
+            ),
+          ),
+          const SizedBox(height: 14),
+          child,
+        ],
+      ),
+    );
+  }
+
+  Widget _switchRow(String text, bool value, ValueChanged<bool> onChanged) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            text,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+        _premiumSwitch(value, onChanged),
+      ],
+    );
+  }
+
+  Widget _premiumSwitch(bool value, ValueChanged<bool> onChanged) {
+    return GestureDetector(
+      onTap: () => onChanged(!value),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        width: 64,
+        height: 34,
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(999),
+          gradient: LinearGradient(
+            colors: value
+                ? [const Color(0xFF4BFF8A), const Color(0xFF20C85F)]
+                : [const Color(0xFF505A67), const Color(0xFF2D3440)],
+          ),
+          boxShadow: value
+              ? const [
+                  BoxShadow(color: Color(0x664BFF8A), blurRadius: 14),
+                ]
+              : null,
+        ),
+        child: Align(
+          alignment: value ? Alignment.centerRight : Alignment.centerLeft,
+          child: Container(
+            width: 26,
+            height: 26,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                colors: [Color(0xFFFFFFFF), Color(0xFFE7EAF0)],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _arrowRow(String text) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            text,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w800,
+              fontSize: 16,
+            ),
+          ),
+        ),
+        const Icon(Icons.chevron_right_rounded, color: Colors.white70),
+      ],
+    );
+  }
+
+  Widget _divider() {
+    return const Padding(
+      padding: EdgeInsets.symmetric(vertical: 12),
+      child: Divider(color: Color(0x22FFFFFF), height: 1),
+    );
+  }
+
+  Widget _circleButton(IconData icon, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: const Color(0x22161A23),
+          border: Border.all(color: const Color(0x44A8D8FF)),
+        ),
+        child: Icon(icon, color: Colors.white, size: 20),
+      ),
+    );
+  }
+
+  void _showLinkAccountSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF0A0A1A),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => Padding(
+        padding: const EdgeInsets.all(24),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            // Game settings
-            RetroCard(
-              child: Column(
-                children: [
-                  _settingToggle(
-                    'Sound Effects',
-                    settings.soundEnabled,
-                    () => ref.read(settingsProvider.notifier).toggleSound(),
-                  ),
-                  const Divider(color: AppColors.gridLine, height: 24),
-                  _settingToggle(
-                    'Music',
-                    settings.musicEnabled,
-                    () => ref.read(settingsProvider.notifier).toggleMusic(),
-                  ),
-                  const Divider(color: AppColors.gridLine, height: 24),
-                  _settingToggle(
-                    'Vibration',
-                    settings.vibrationEnabled,
-                    () => ref.read(settingsProvider.notifier).toggleVibration(),
-                  ),
-                ],
+            Container(
+              width: 40, height: 4,
+              decoration: BoxDecoration(
+                color: Colors.white24,
+                borderRadius: BorderRadius.circular(2),
               ),
             ),
-            const SizedBox(height: 16),
-
-            // Account info
-            RetroCard(
-              borderColor: AppColors.neonPink,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'ACCOUNT',
-                    style: TextStyle(
-                      fontFamily: 'PressStart2P',
-                      fontSize: 10,
-                      color: AppColors.neonPink,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  _settingRow(
-                    'Provider',
-                    userState.provider,
-                  ),
-                  if (userState.email != null) ...[
-                    const Divider(color: AppColors.gridLine, height: 20),
-                    _settingRow('Email', userState.email!),
-                  ],
-                  if (userState.displayName != null) ...[
-                    const Divider(color: AppColors.gridLine, height: 20),
-                    _settingRow('Name', userState.displayName!),
-                  ],
-                  if (userState.isAnonymous) ...[
-                    const Divider(color: AppColors.gridLine, height: 20),
-                    const Text(
-                      'Link an account to save progress',
-                      style: TextStyle(
-                        fontFamily: 'PressStart2P',
-                        fontSize: 6,
-                        color: AppColors.neonYellow,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    GestureDetector(
-                      onTap: () => context.go('/login'),
-                      child: Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: AppColors.neonGreen),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: const Text(
-                          'LINK ACCOUNT',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontFamily: 'PressStart2P',
-                            fontSize: 8,
-                            color: AppColors.neonGreen,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ],
+            const SizedBox(height: 20),
+            Text(
+              L.isTr ? 'Hesabını Bağla' : 'Link Your Account',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 22,
+                fontWeight: FontWeight.w900,
               ),
             ),
-            const SizedBox(height: 16),
-
-            // Purchases
-            RetroCard(
-              borderColor: AppColors.gold,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'PURCHASES',
-                    style: TextStyle(
-                      fontFamily: 'PressStart2P',
-                      fontSize: 10,
-                      color: AppColors.gold,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  GestureDetector(
-                    onTap: () async {
-                      await iap.restorePurchases();
-                      await ref
-                          .read(userProvider.notifier)
-                          .refreshEntitlements();
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Purchases restored'),
-                            backgroundColor: AppColors.neonGreen,
-                          ),
-                        );
-                      }
-                    },
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: AppColors.gold),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: const Text(
-                        'RESTORE PURCHASES',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontFamily: 'PressStart2P',
-                          fontSize: 8,
-                          color: AppColors.gold,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Legal
-            RetroCard(
-              borderColor: AppColors.neonBlue,
-              child: Column(
-                children: [
-                  _linkRow(
-                    'Privacy Policy',
-                    () => context.push('/privacy'),
-                  ),
-                  const Divider(color: AppColors.gridLine, height: 20),
-                  _linkRow(
-                    'Terms of Service',
-                    () => context.push('/terms'),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Info
-            RetroCard(
-              child: Column(
-                children: [
-                  _settingRow('Language', settings.language.toUpperCase()),
-                  const Divider(color: AppColors.gridLine, height: 24),
-                  _settingRow('Version', '1.0.0'),
-                ],
-              ),
+            const SizedBox(height: 8),
+            Text(
+              L.isTr ? 'İlerlemeni kaydetmek için bir hesap bağla' : 'Link an account to save your progress',
+              style: const TextStyle(color: Colors.white54, fontSize: 14),
+              textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
-
-            // Sign out
-            if (userState.isLoggedIn && !userState.isAnonymous)
-              GestureDetector(
-                onTap: () async {
-                  await ref.read(userProvider.notifier).signOut();
-                  if (context.mounted) context.go('/login');
-                },
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: AppColors.neonYellow),
-                    borderRadius: BorderRadius.circular(4),
+            _linkButton(
+              L.isTr ? 'Google ile Bağla' : 'Link with Google',
+              Icons.g_mobiledata,
+              const Color(0xFFEA4335),
+              () {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  backgroundColor: const Color(0xFF1A1A2E),
+                  content: Text(
+                    L.isTr ? 'Google bağlantısı yakında!' : 'Google linking coming soon!',
+                    style: const TextStyle(color: Color(0xFF00DDFF)),
                   ),
-                  child: const Text(
-                    'SIGN OUT',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontFamily: 'PressStart2P',
-                      fontSize: 10,
-                      color: AppColors.neonYellow,
-                    ),
-                  ),
-                ),
-              ),
+                ));
+              },
+            ),
             const SizedBox(height: 12),
-
-            // Delete account
-            if (userState.isLoggedIn)
-              GestureDetector(
-                onTap: () => _showDeleteConfirmation(context, ref),
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.red),
-                    borderRadius: BorderRadius.circular(4),
+            _linkButton(
+              L.isTr ? 'E-posta ile Bağla' : 'Link with Email',
+              Icons.email_outlined,
+              const Color(0xFF4285F4),
+              () {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  backgroundColor: const Color(0xFF1A1A2E),
+                  content: Text(
+                    L.isTr ? 'E-posta bağlantısı yakında!' : 'Email linking coming soon!',
+                    style: const TextStyle(color: Color(0xFF00DDFF)),
                   ),
-                  child: const Text(
-                    'DELETE ACCOUNT',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontFamily: 'PressStart2P',
-                      fontSize: 10,
-                      color: Colors.red,
-                    ),
-                  ),
-                ),
+                ));
+              },
+            ),
+            const SizedBox(height: 12),
+            if (Theme.of(context).platform == TargetPlatform.iOS)
+              _linkButton(
+                L.isTr ? 'Apple ile Bağla' : 'Link with Apple',
+                Icons.apple,
+                Colors.white,
+                () {
+                  Navigator.pop(context);
+                },
               ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 20),
           ],
         ),
       ),
     );
   }
 
-  void _showDeleteConfirmation(BuildContext context, WidgetRef ref) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.darkCard,
-        title: const Text(
-          'DELETE ACCOUNT',
-          style: TextStyle(
-            fontFamily: 'PressStart2P',
-            fontSize: 12,
-            color: Colors.red,
-          ),
-        ),
-        content: const Text(
-          'This will permanently delete your account and all game data. This action cannot be undone.',
-          style: TextStyle(
-            fontFamily: 'PressStart2P',
-            fontSize: 7,
-            color: Colors.white70,
-            height: 1.8,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text(
-              'CANCEL',
-              style: TextStyle(
-                fontFamily: 'PressStart2P',
-                fontSize: 8,
-                color: AppColors.neonBlue,
-              ),
-            ),
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(ctx);
-
-              // Delete from backend
-              final uid = ref.read(userProvider).uid;
-              if (uid != null) {
-                try {
-                  await http.delete(
-                    Uri.parse(
-                        '${AppConstants.apiBaseUrl}/api/auth/account?user_id=$uid'),
-                  );
-                } catch (_) {}
-              }
-
-              // Delete from Firebase
-              await ref.read(userProvider.notifier).deleteAccount();
-              if (context.mounted) context.go('/login');
-            },
-            child: const Text(
-              'DELETE',
-              style: TextStyle(
-                fontFamily: 'PressStart2P',
-                fontSize: 8,
-                color: Colors.red,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _settingToggle(String label, bool value, VoidCallback onTap) {
+  Widget _linkButton(String text, IconData icon, Color color, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontFamily: 'PressStart2P',
-              fontSize: 9,
-              color: AppColors.white,
-            ),
-          ),
-          Container(
-            width: 48,
-            height: 26,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(13),
-              color: value ? AppColors.neonGreen : AppColors.gridLine,
-              border: Border.all(
-                color: value ? AppColors.neonGreen : AppColors.gridLine,
-                width: 2,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          color: const Color(0xFF141428),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: color.withValues(alpha: 0.5), width: 1.5),
+          boxShadow: [
+            BoxShadow(color: color.withValues(alpha: 0.2), blurRadius: 12),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: color, size: 24),
+            const SizedBox(width: 12),
+            Text(
+              text,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w800,
+                fontSize: 16,
               ),
             ),
-            child: AnimatedAlign(
-              duration: const Duration(milliseconds: 200),
-              alignment: value ? Alignment.centerRight : Alignment.centerLeft,
-              child: Container(
-                width: 20,
-                height: 20,
-                margin: const EdgeInsets.all(1),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: value ? AppColors.white : AppColors.darkCard,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _settingRow(String label, String value) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontFamily: 'PressStart2P',
-            fontSize: 8,
-            color: AppColors.white,
-          ),
+          ],
         ),
-        Flexible(
-          child: Text(
-            value,
-            style: const TextStyle(
-              fontFamily: 'PressStart2P',
-              fontSize: 7,
-              color: AppColors.neonBlue,
-            ),
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _linkRow(String label, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontFamily: 'PressStart2P',
-              fontSize: 8,
-              color: AppColors.white,
-            ),
-          ),
-          const Icon(
-            Icons.chevron_right,
-            color: AppColors.neonBlue,
-            size: 20,
-          ),
-        ],
       ),
     );
   }

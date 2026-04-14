@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flame/game.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -6,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../game/pixreveal_game.dart';
 import '../game/components/player.dart';
 import '../game/levels/level_manager.dart';
+import '../main.dart' show adServiceProvider;
 import '../providers/token_provider.dart';
 import '../screens/level_select_screen.dart';
 import '../utils/constants.dart';
@@ -13,7 +15,15 @@ import '../utils/constants.dart';
 class GameScreen extends ConsumerStatefulWidget {
   final int levelId;
   final String imageFile;
-  const GameScreen({super.key, required this.levelId, this.imageFile = 'level_1.jpg'});
+  final String categoryName;
+  final List<String> categoryImages;
+  const GameScreen({
+    super.key,
+    required this.levelId,
+    this.imageFile = 'level_1.jpg',
+    this.categoryName = 'SUPER CARS',
+    this.categoryImages = const ['cars_1.jpg', 'cars_2.jpg', 'cars_3.jpg'],
+  });
 
   @override
   ConsumerState<GameScreen> createState() => _GameScreenState();
@@ -25,11 +35,17 @@ class _GameScreenState extends ConsumerState<GameScreen>
   bool _showPauseOverlay = false;
   bool _showGameOver = false;
   bool _showTokenInsert = true; // Start with token animation
+  bool _showReveal = false;
   late AnimationController _tokenAnimCtrl;
 
   @override
   void initState() {
     super.initState();
+    // Switch to landscape for gameplay
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
     _tokenAnimCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
@@ -40,8 +56,8 @@ class _GameScreenState extends ConsumerState<GameScreen>
       if (!mounted) return;
       final tokenState = ref.read(tokenProvider);
       if (tokenState.tokens <= 0) {
-        context.go('/levels');
-        return;
+        // Auto-refill for testing (remove before production)
+        ref.read(tokenProvider.notifier).addTokens(10);
       }
 
       // Spend 1 token, get 3 lives
@@ -61,12 +77,16 @@ class _GameScreenState extends ConsumerState<GameScreen>
 
   @override
   void dispose() {
+    // Return to portrait when leaving game
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     _tokenAnimCtrl.dispose();
     super.dispose();
   }
 
   void _initGame() {
     final config = LevelManager.getLevel(widget.levelId);
+    // ignore: avoid_print
+    print('=== GAME START: Level ${widget.levelId}, Image: ${widget.imageFile} ===');
 
     final tokens = ref.read(tokenProvider).tokens;
     _game = PixRevealGame(
@@ -76,19 +96,33 @@ class _GameScreenState extends ConsumerState<GameScreen>
       imageFile: widget.imageFile,
     );
 
-    _game!.onWin = (captured, stars) {
+    _game!.onWin = (captured, stars) async {
       if (stars >= 3) ref.read(tokenProvider.notifier).awardThreeStarBonus();
-      // Unlock next level
       _unlockNextLevel(widget.levelId);
-      Future.delayed(const Duration(milliseconds: 500), () {
-        if (mounted) {
-          context.go('/result', extra: {
-            'levelId': widget.levelId,
-            'captured': captured,
-            'stars': stars,
-            'timeSeconds': _game!.elapsedSeconds,
-          });
-        }
+
+      // Show reveal overlay
+      if (mounted) setState(() => _showReveal = true);
+      await Future.delayed(const Duration(seconds: 3));
+
+      // Close reveal BEFORE navigating
+      if (mounted) setState(() => _showReveal = false);
+
+      // Ad
+      try {
+        final adService = ref.read(adServiceProvider);
+        await adService.notifyLevelComplete();
+      } catch (_) {}
+
+      if (!mounted) return;
+      context.go('/result', extra: {
+        'levelId': widget.levelId,
+        'captured': captured,
+        'stars': stars,
+        'timeSeconds': _game!.elapsedSeconds,
+        'imageAsset': 'assets/images/${widget.imageFile}',
+        'imageFile': widget.imageFile,
+        'categoryName': widget.categoryName,
+        'categoryImages': widget.categoryImages,
       });
     };
 
@@ -129,7 +163,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
           // D-Pad — small, bottom-right corner
           if (!_showTokenInsert && !_showGameOver && !_showPauseOverlay)
             Positioned(
-              bottom: 10, right: 10,
+              bottom: 20, left: 20,
               child: _buildDPad(),
             ),
 
@@ -164,6 +198,9 @@ class _GameScreenState extends ConsumerState<GameScreen>
 
           // Game Over overlay
           if (_showGameOver) _buildGameOver(),
+
+          // Reveal overlay — fullscreen image for 3 seconds after win
+          if (_showReveal) _buildRevealOverlay(),
         ],
       ),
     );
@@ -173,102 +210,44 @@ class _GameScreenState extends ConsumerState<GameScreen>
   Widget _buildTokenInsert() {
     return GestureDetector(
       onTap: () {
-        // Skip animation
         _tokenAnimCtrl.stop();
         setState(() {
           _showTokenInsert = false;
           if (_game == null) _initGame();
         });
       },
-      child: Container(
-        color: AppColors.darkBg,
-        child: Center(
-          child: AnimatedBuilder(
-            animation: _tokenAnimCtrl,
-            builder: (context, _) {
-              final progress = _tokenAnimCtrl.value;
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Coin slot
-                  Container(
-                    width: 80, height: 12,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF333333),
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: AppColors.neonYellow, width: 2),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.neonYellow.withValues(alpha: 0.3),
-                          blurRadius: 8,
-                        ),
-                      ],
+      child: AnimatedBuilder(
+        animation: _tokenAnimCtrl,
+        builder: (context, _) {
+          final progress = _tokenAnimCtrl.value;
+          return Stack(
+            fit: StackFit.expand,
+            children: [
+              // Reference image background
+              Image.asset('assets/images/ui/token_insert_bg.png', fit: BoxFit.cover),
+              // Subtle fade-out near end
+              Container(
+                color: Colors.black.withValues(
+                  alpha: progress > 0.9 ? (progress - 0.9) * 10 : 0,
+                ),
+              ),
+              // Tap to skip hint
+              Positioned(
+                bottom: 30, left: 0, right: 0,
+                child: Center(
+                  child: Text(
+                    'TAP TO SKIP',
+                    style: TextStyle(
+                      fontSize: 10, fontWeight: FontWeight.w700,
+                      letterSpacing: 2,
+                      color: Colors.white.withValues(alpha: 0.4),
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  // Falling coin
-                  Transform.translate(
-                    offset: Offset(0, -80 + progress * 80),
-                    child: Opacity(
-                      opacity: progress < 0.8 ? 1.0 : (1.0 - (progress - 0.8) * 5).clamp(0.0, 1.0),
-                      child: Container(
-                        width: 40, height: 40,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: AppColors.neonYellow,
-                          border: Border.all(color: const Color(0xFFFFAA00), width: 3),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.neonYellow.withValues(alpha: 0.5),
-                              blurRadius: 12,
-                            ),
-                          ],
-                        ),
-                        child: const Center(
-                          child: Text('J', style: TextStyle(
-                            fontFamily: 'PressStart2P', fontSize: 16,
-                            color: Color(0xFF885500),
-                          )),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 30),
-                  // INSERT COIN text
-                  Text('INSERT COIN', style: TextStyle(
-                    fontFamily: 'PressStart2P', fontSize: 14,
-                    color: AppColors.neonYellow.withValues(alpha: progress > 0.3 ? 1.0 : 0.0),
-                    shadows: const [Shadow(color: AppColors.neonYellow, blurRadius: 8)],
-                  )),
-                  const SizedBox(height: 20),
-                  // Hearts appearing
-                  if (progress > 0.6) Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: List.generate(3, (i) {
-                      final heartProgress = ((progress - 0.6 - i * 0.1) * 5).clamp(0.0, 1.0);
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 6),
-                        child: Opacity(
-                          opacity: heartProgress,
-                          child: Transform.scale(
-                            scale: 0.5 + heartProgress * 0.5,
-                            child: const Icon(Icons.favorite,
-                              color: AppColors.neonPink, size: 32),
-                          ),
-                        ),
-                      );
-                    }),
-                  ),
-                  const SizedBox(height: 30),
-                  Text('TAP TO SKIP', style: TextStyle(
-                    fontFamily: 'PressStart2P', fontSize: 7,
-                    color: Colors.white.withValues(alpha: 0.3),
-                  )),
-                ],
-              );
-            },
-          ),
-        ),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -314,41 +293,10 @@ class _GameScreenState extends ConsumerState<GameScreen>
     );
   }
 
-  // ---- D-PAD ----
+  // ---- VIRTUAL JOYSTICK ----
   Widget _buildDPad() {
-    const s = 36.0; // button size
-    const g = 2.0;  // gap
-    return Opacity(
-      opacity: 0.5,
-      child: SizedBox(
-        width: s * 3 + g * 2, height: s * 3 + g * 2,
-        child: Stack(
-          children: [
-            Positioned(top: 0, left: s + g,
-              child: _dpadBtn(Icons.keyboard_arrow_up, MoveDirection.up, s)),
-            Positioned(bottom: 0, left: s + g,
-              child: _dpadBtn(Icons.keyboard_arrow_down, MoveDirection.down, s)),
-            Positioned(top: s + g, left: 0,
-              child: _dpadBtn(Icons.keyboard_arrow_left, MoveDirection.left, s)),
-            Positioned(top: s + g, right: 0,
-              child: _dpadBtn(Icons.keyboard_arrow_right, MoveDirection.right, s)),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _dpadBtn(IconData icon, MoveDirection dir, double s) {
-    return GestureDetector(
-      onTapDown: (_) => _game?.handleDirection(dir),
-      child: Container(
-        width: s, height: s,
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.15),
-          borderRadius: BorderRadius.circular(6),
-        ),
-        child: Icon(icon, color: Colors.white.withValues(alpha: 0.6), size: s * 0.7),
-      ),
+    return _VirtualJoystick(
+      onDirection: (dir) => _game?.handleDirection(dir),
     );
   }
 
@@ -391,15 +339,67 @@ class _GameScreenState extends ConsumerState<GameScreen>
     );
   }
 
+  Widget _buildRevealOverlay() {
+    return Container(
+      color: Colors.black,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Center(
+            child: Image.asset(
+              'assets/images/${widget.imageFile}',
+              fit: BoxFit.contain,
+              errorBuilder: (_, __, ___) => Container(color: AppColors.darkBg),
+            ),
+          ),
+          // Bottom gradient + complete text
+          Positioned(
+            bottom: 0, left: 0, right: 0,
+            child: Container(
+              padding: const EdgeInsets.only(top: 80, bottom: 60),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Colors.transparent, Colors.black87],
+                ),
+              ),
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('LEVEL COMPLETE',
+                      style: TextStyle(
+                        fontFamily: 'PressStart2P', fontSize: 18,
+                        color: AppColors.neonGreen,
+                        shadows: [Shadow(color: AppColors.neonGreen, blurRadius: 16)],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text('IMAGE REVEALED',
+                      style: TextStyle(
+                        fontFamily: 'PressStart2P', fontSize: 10,
+                        color: Colors.white70,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _unlockNextLevel(int currentLevel) async {
     final nextLevel = currentLevel + 1;
     final prefs = await SharedPreferences.getInstance();
-    final current = prefs.getInt('unlocked_level') ?? 1;
+    // Per-category unlock key
+    final key = 'unlocked_${widget.categoryName}';
+    final current = prefs.getInt(key) ?? 1;
     if (nextLevel > current) {
-      await prefs.setInt('unlocked_level', nextLevel);
-      if (mounted) {
-        ref.read(unlockedLevelProvider.notifier).state = nextLevel;
-      }
+      await prefs.setInt(key, nextLevel);
     }
   }
 
@@ -418,4 +418,134 @@ class AnimatedBuilder extends AnimatedWidget {
     required this.builder}) : super(listenable: animation);
   @override
   Widget build(BuildContext context) => builder(context, null);
+}
+
+/// Virtual joystick — large translucent circle with thumb + 4 direction arrows.
+class _VirtualJoystick extends StatefulWidget {
+  final void Function(MoveDirection) onDirection;
+  const _VirtualJoystick({required this.onDirection});
+
+  @override
+  State<_VirtualJoystick> createState() => _VirtualJoystickState();
+}
+
+class _VirtualJoystickState extends State<_VirtualJoystick> {
+  static const double _size = 100; // compact, less intrusive
+  Offset _thumbOffset = Offset.zero;
+  MoveDirection _lastDir = MoveDirection.none;
+
+  void _handleDrag(Offset localPosition) {
+    final center = const Offset(_size / 2, _size / 2);
+    final delta = localPosition - center;
+    final dist = delta.distance;
+    const maxRadius = _size / 2 - 18;
+
+    // Clamp thumb to circle
+    Offset thumb;
+    if (dist > maxRadius) {
+      thumb = Offset(delta.dx / dist * maxRadius, delta.dy / dist * maxRadius);
+    } else {
+      thumb = delta;
+    }
+
+    // Dead zone
+    if (dist < 15) {
+      setState(() { _thumbOffset = thumb; });
+      return;
+    }
+
+    // Determine 4-way direction (pick dominant axis)
+    MoveDirection dir;
+    if (delta.dx.abs() > delta.dy.abs()) {
+      dir = delta.dx > 0 ? MoveDirection.right : MoveDirection.left;
+    } else {
+      dir = delta.dy > 0 ? MoveDirection.down : MoveDirection.up;
+    }
+
+    setState(() { _thumbOffset = thumb; });
+    if (dir != _lastDir) {
+      _lastDir = dir;
+      widget.onDirection(dir);
+    }
+  }
+
+  void _reset() {
+    setState(() {
+      _thumbOffset = Offset.zero;
+      _lastDir = MoveDirection.none;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Listener(
+      onPointerDown: (e) {
+        final box = context.findRenderObject() as RenderBox;
+        _handleDrag(box.globalToLocal(e.position));
+      },
+      onPointerMove: (e) {
+        final box = context.findRenderObject() as RenderBox;
+        _handleDrag(box.globalToLocal(e.position));
+      },
+      onPointerUp: (_) => _reset(),
+      onPointerCancel: (_) => _reset(),
+      child: SizedBox(
+        width: _size,
+        height: _size,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            // Outer circle
+            Container(
+              width: _size, height: _size,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.black.withValues(alpha: 0.25),
+                border: Border.all(
+                  color: const Color(0xFF4466DD).withValues(alpha: 0.4),
+                  width: 1.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF4466DD).withValues(alpha: 0.4),
+                    blurRadius: 14,
+                  ),
+                ],
+              ),
+            ),
+            // Direction arrows
+            const Positioned(top: 8, child: Icon(Icons.arrow_drop_up,
+              color: Color(0x66FFFFFF), size: 20)),
+            const Positioned(bottom: 8, child: Icon(Icons.arrow_drop_down,
+              color: Color(0x66FFFFFF), size: 20)),
+            const Positioned(left: 8, child: Icon(Icons.arrow_left,
+              color: Color(0x66FFFFFF), size: 20)),
+            const Positioned(right: 8, child: Icon(Icons.arrow_right,
+              color: Color(0x66FFFFFF), size: 20)),
+            // Thumb
+            Transform.translate(
+              offset: _thumbOffset,
+              child: Container(
+                width: 36, height: 36,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: const RadialGradient(
+                    colors: [Color(0xFF334499), Color(0xFF0D0D2A)],
+                    stops: [0.2, 1.0],
+                  ),
+                  border: Border.all(color: const Color(0xFF88AAFF), width: 2),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF4466DD).withValues(alpha: 0.6),
+                      blurRadius: 10,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

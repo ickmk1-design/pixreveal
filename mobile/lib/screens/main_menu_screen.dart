@@ -1,10 +1,11 @@
+import '../utils/localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../utils/constants.dart';
-import '../widgets/neon_button.dart';
-import '../widgets/token_display.dart';
-import '../providers/token_provider.dart';
+
+import '../widgets/coin_badge.dart';
+import '../widgets/premium_button.dart';
+import '../widgets/space_background.dart';
 
 class MainMenuScreen extends ConsumerStatefulWidget {
   const MainMenuScreen({super.key});
@@ -15,192 +16,173 @@ class MainMenuScreen extends ConsumerStatefulWidget {
 
 class _MainMenuScreenState extends ConsumerState<MainMenuScreen>
     with SingleTickerProviderStateMixin {
-  late AnimationController _pulseController;
+  late final AnimationController _spiderCtrl;
 
   @override
   void initState() {
     super.initState();
-
-    _pulseController = AnimationController(
+    _spiderCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1500),
+      duration: const Duration(seconds: 3),
     )..repeat(reverse: true);
-
-    // Try claim daily login
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final claimed = ref.read(tokenProvider.notifier).claimDailyLogin();
-      if (claimed) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            backgroundColor: AppColors.darkCard,
-            content: Row(
-              children: [
-                Icon(Icons.card_giftcard, color: AppColors.gold),
-                const SizedBox(width: 8),
-                Text(
-                  'Daily Bonus: +${GameConfig.dailyLoginTokens} Tokens!',
-                  style: const TextStyle(
-                    fontFamily: 'PressStart2P',
-                    fontSize: 10,
-                    color: AppColors.gold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      }
-    });
   }
 
   @override
   void dispose() {
-    _pulseController.dispose();
+    _spiderCtrl.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.darkBg,
-      body: SafeArea(
-        child: Stack(
-          children: [
-            // Grid background
-            CustomPaint(
-              size: MediaQuery.of(context).size,
-              painter: _GridPainter(),
-            ),
-
-            // Content
-            Center(
-              child: Column(
+      body: SpaceBackground(
+        child: SafeArea(
+          child: Stack(
+            children: [
+              Positioned(
+                top: 14,
+                right: 16,
+                child: CoinBadge(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                ),
+              ),
+              Column(
                 children: [
-                  const SizedBox(height: 16),
-
-                  // Token display top-right
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        const TokenDisplay(),
-                      ],
-                    ),
-                  ),
-
-                  const Spacer(flex: 2),
-
-                  // Title
-                  AnimatedBuilder(
-                    listenable: _pulseController,
-                    builder: (context, _) {
-                      final glow = 8.0 + _pulseController.value * 12;
-                      return Text(
-                        'PIXREVEAL',
-                        style: TextStyle(
-                          fontFamily: 'PressStart2P',
-                          fontSize: 28,
-                          color: AppColors.neonPink,
-                          letterSpacing: 3,
-                          shadows: [
-                            Shadow(
-                              color: AppColors.neonPink,
-                              blurRadius: glow,
+                  const SizedBox(height: 36),
+                  Expanded(
+                    child: Center(
+                      child: AnimatedBuilder(
+                        animation: _spiderCtrl,
+                        builder: (context, child) {
+                          final y = (_spiderCtrl.value - 0.5) * 12;
+                          return Transform.translate(
+                            offset: Offset(0, y),
+                            child: child,
+                          );
+                        },
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Container(
+                              width: 320,
+                              height: 320,
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Color(0x22FF3A3A),
+                                    blurRadius: 120,
+                                    spreadRadius: 18,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Image.asset(
+                              'assets/images/spider_hero.png',
+                              width: 290,
+                              fit: BoxFit.contain,
+                            ),
+                            Positioned(
+                              top: 104,
+                              left: 112,
+                              child: _eyeGlow(),
+                            ),
+                            Positioned(
+                              top: 104,
+                              right: 112,
+                              child: _eyeGlow(),
                             ),
                           ],
                         ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'REVEAL THE HIDDEN',
-                    style: TextStyle(
-                      fontFamily: 'PressStart2P',
-                      fontSize: 9,
-                      color: AppColors.neonBlue.withValues(alpha: 0.7),
-                      letterSpacing: 2,
+                      ),
                     ),
                   ),
-
-                  const Spacer(flex: 2),
-
-                  // Menu buttons
-                  NeonButton(
-                    text: 'PLAY',
-                    onPressed: () => context.go('/levels'),
-                    color: AppColors.neonGreen,
-                    fontSize: 16,
-                  ),
-                  const SizedBox(height: 16),
-                  NeonButton(
-                    text: 'SHOP',
-                    onPressed: () => context.go('/shop'),
-                    color: AppColors.gold,
-                  ),
-                  const SizedBox(height: 16),
-                  NeonButton(
-                    text: 'SETTINGS',
-                    onPressed: () => context.go('/settings'),
-                    color: AppColors.neonBlue,
-                  ),
-
-                  const Spacer(flex: 3),
-
-                  const SizedBox(height: 8),
-
-                  // Version
-                  Text(
-                    'v1.0.0 - CYT Bilisim',
-                    style: TextStyle(
-                      fontFamily: 'PressStart2P',
-                      fontSize: 7,
-                      color: AppColors.gridLine,
+                  const _GameLogo(),
+                  const SizedBox(height: 30),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 28),
+                    child: Column(
+                      children: [
+                        PremiumButton(
+                          text: L.get('play').toUpperCase(),
+                          onPressed: () => context.go('/image-select'),
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: PremiumButton(
+                                text: L.get('shop').toUpperCase(),
+                                outlined: true,
+                                outlineColor: const Color(0x66B8DFFF),
+                                onPressed: () => context.go('/shop'),
+                              ),
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: PremiumButton(
+                                text: L.get('settings').toUpperCase(),
+                                outlined: true,
+                                outlineColor: const Color(0x66B8DFFF),
+                                onPressed: () => context.go('/settings'),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 34),
                 ],
               ),
-            ),
-          ],
+            ],
+          ),
         ),
+      ),
+    );
+  }
+
+  Widget _eyeGlow() {
+    return Container(
+      width: 14,
+      height: 14,
+      decoration: const BoxDecoration(
+        shape: BoxShape.circle,
+        color: Color(0xFFFF3232),
+        boxShadow: [
+          BoxShadow(
+            color: Color(0xCCFF2A2A),
+            blurRadius: 16,
+            spreadRadius: 6,
+          ),
+        ],
       ),
     );
   }
 }
 
-class _GridPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = AppColors.gridLine.withValues(alpha: 0.3)
-      ..strokeWidth = 0.5;
-
-    const spacing = 30.0;
-    for (double x = 0; x < size.width; x += spacing) {
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
-    }
-    for (double y = 0; y < size.height; y += spacing) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-class AnimatedBuilder extends AnimatedWidget {
-  final Widget Function(BuildContext, Widget?) builder;
-
-  const AnimatedBuilder({
-    super.key,
-    required super.listenable,
-    required this.builder,
-  });
+class _GameLogo extends StatelessWidget {
+  const _GameLogo();
 
   @override
   Widget build(BuildContext context) {
-    return builder(context, null);
+    return Column(
+      children: [
+        Text(
+          'PIXREVEAL',
+          style: TextStyle(
+            fontSize: 40,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 3.2,
+            color: const Color(0xFF49F1FF),
+            shadows: const [
+              Shadow(color: Color(0xAA0ECFFF), blurRadius: 22),
+              Shadow(color: Color(0x55000000), blurRadius: 8, offset: Offset(0, 3)),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 }

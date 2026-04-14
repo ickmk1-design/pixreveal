@@ -78,5 +78,45 @@ class L {
     'great': {'tr': 'HARİKA!', 'en': 'GREAT!'},
     'excellent': {'tr': 'MÜKEMMEL!', 'en': 'EXCELLENT!'},
     'combo': {'tr': 'KOMBO', 'en': 'COMBO'},
+
+    // Shop
+    'watch_ad': {'tr': 'REKLAM İZLE', 'en': 'WATCH AD'},
+    'watch_ad_for_tokens': {'tr': 'Reklam izle, jeton kazan!', 'en': 'Watch ad, earn tokens!'},
+    'free_tokens': {'tr': 'BEDAVA JETON', 'en': 'FREE TOKENS'},
+    'token_packs': {'tr': 'JETON PAKETLERİ', 'en': 'TOKEN PACKS'},
+    'theme_packs': {'tr': 'TEMA PAKETLERİ', 'en': 'THEME PACKS'},
+
+    // Settings
+    'sound_effects': {'tr': 'Ses Efektleri', 'en': 'Sound Effects'},
+    'vibration': {'tr': 'Titreşim', 'en': 'Vibration'},
+    'account': {'tr': 'HESAP', 'en': 'ACCOUNT'},
+    'provider_guest': {'tr': 'Sağlayıcı: Misafir', 'en': 'Provider: Guest'},
+    'link_account': {'tr': 'HESAP BAĞLA', 'en': 'LINK ACCOUNT'},
+    'purchases': {'tr': 'SATINALMA', 'en': 'PURCHASES'},
+    'restore_purchases': {'tr': 'SATINALMALARI GERİ YÜKLE', 'en': 'RESTORE PURCHASES'},
+    'legal': {'tr': 'YASAL', 'en': 'LEGAL'},
+    'privacy_policy': {'tr': 'Gizlilik Politikası', 'en': 'Privacy Policy'},
+    'terms_of_service': {'tr': 'Kullanım Şartları', 'en': 'Terms of Service'},
+
+    // Result
+    'victory': {'tr': 'ZAFER!', 'en': 'VICTORY!'},
+    'combo_bonus': {'tr': 'KOMBO BONUS', 'en': 'COMBO BONUS'},
+    'continue_question': {'tr': 'Devam etmek ister misin?', 'en': 'Want to continue?'},
+    'use_token': {'tr': 'JETON KULLAN', 'en': 'USE TOKEN'},
+    'menu': {'tr': 'MENÜ', 'en': 'MENU'},
+
+    // Paywall
+    'go_premium': {'tr': 'PREMIUM OL', 'en': 'GO PREMIUM'},
+    'subscribe': {'tr': 'ABONE OL', 'en': 'SUBSCRIBE'},
+    'loading': {'tr': 'YÜKLENİYOR...', 'en': 'LOADING...'},
+
+    // Categories
+    'select_category': {'tr': 'KATEGORİ SEÇ', 'en': 'SELECT CATEGORY'},
+    'your_own_image': {'tr': 'KENDİ FOTOĞRAFIN', 'en': 'YOUR OWN IMAGE'},
+    'super_cars': {'tr': 'SÜPER ARABALAR', 'en': 'SUPER CARS'},
+    'deep_space': {'tr': 'DERİN UZAY', 'en': 'DEEP SPACE'},
+    'wild_animals': {'tr': 'VAHŞİ HAYVANLAR', 'en': 'WILD ANIMALS'},
+    'beach_glamour': {'tr': 'PLAJ GLAMOUR', 'en': 'BEACH GLAMOUR'},
+    'fitness': {'tr': 'FİTNESS', 'en': 'FITNESS'},
   };
 }

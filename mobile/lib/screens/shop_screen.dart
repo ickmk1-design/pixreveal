@@ -1,347 +1,276 @@
+import '../utils/localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../main.dart';
-import '../utils/constants.dart';
-import '../widgets/token_display.dart';
-import '../widgets/retro_card.dart';
-import '../providers/token_provider.dart';
-import '../providers/auth_provider.dart';
-import '../services/iap_service.dart';
 
-class ShopScreen extends ConsumerWidget {
+import '../widgets/coin_badge.dart';
+import '../widgets/premium_button.dart';
+import '../widgets/space_background.dart';
+
+class ShopScreen extends StatefulWidget {
   const ShopScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final tokenState = ref.watch(tokenProvider);
-    final iap = ref.read(iapServiceProvider);
+  State<ShopScreen> createState() => _ShopScreenState();
+}
 
+class _ShopScreenState extends State<ShopScreen> {
+  final packs = const [
+    (20, '\$0.99'),
+    (50, '\$1.99'),
+    (120, '\$3.99'),
+    (300, '\$8.99'),
+    (750, '\$19.99'),
+  ];
+
+  // Only PREMIUM themes in shop (free ones are already available)
+  final themes = const [
+    ('BEACH GLAMOUR', 'assets/images/glamour_1.jpg', true),
+    ('FITNESS', 'assets/images/fitness_1.jpg', true),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.darkBg,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.neonBlue),
-          onPressed: () => context.go('/menu'),
-        ),
-        title: const Text(
-          'SHOP',
-          style: TextStyle(
-            fontFamily: 'PressStart2P',
-            fontSize: 14,
-            color: AppColors.gold,
+      body: SpaceBackground(
+        child: SafeArea(
+          child: Column(
+            children: [
+              _topBar(context),
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 28),
+                  children: [
+                    _sectionTitle(L.get('free_tokens')),
+                    const SizedBox(height: 10),
+                    _glassCard(
+                      child: Row(
+                        children: [
+                          const Icon(Icons.ondemand_video, color: Color(0xFFFFD76A), size: 36),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              L.get('watch_ad_for_tokens'),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w800,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Flexible(
+                            child: PremiumButton(
+                              text: L.get('watch_ad'),
+                              height: 50,
+                              gradient: const [Color(0xFF1EA0FF), Color(0xFF39D0FF)],
+                              onPressed: () {},
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 22),
+                    _sectionTitle(L.get('token_packs')),
+                    const SizedBox(height: 10),
+                    ...packs.map(_packCard),
+                    const SizedBox(height: 22),
+                    _sectionTitle(L.isTr ? 'REKLAM KALDIRMA' : 'REMOVE ADS'),
+                    const SizedBox(height: 10),
+                    _packCard((0, '\$3.99'), label: L.isTr ? 'Reklamları Kaldır (Tek Sefer)' : 'Remove All Ads (One-time)'),
+                    const SizedBox(height: 22),
+                    _sectionTitle(L.isTr ? 'PREMIUM TEMALAR' : 'PREMIUM THEMES'),
+                    const SizedBox(height: 10),
+                    ...themes.map(_themeCard),
+                    const SizedBox(height: 22),
+                    _sectionTitle(L.isTr ? 'PREMIUM ABONELİK' : 'PREMIUM SUBSCRIPTION'),
+                    const SizedBox(height: 10),
+                    _packCard((0, '\$6.99/mo'), label: L.isTr ? 'Tüm Temalar + Sınırsız Jeton + Reklamsız' : 'All Themes + Unlimited Tokens + No Ads'),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
-        centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
+    );
+  }
+
+  Widget _topBar(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      child: Row(
+        children: [
+          _circleButton(Icons.arrow_back_ios_new, () => context.go('/menu')),
+          const Spacer(),
+          const CoinBadge(),
+        ],
+      ),
+    );
+  }
+
+  Widget _packCard((int, String) item, {String? label}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: _glassCard(
+        child: Row(
           children: [
-            const TokenDisplay(),
-            const SizedBox(height: 24),
-
-            // Free tokens section
-            RetroCard(
-              borderColor: AppColors.neonGreen,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'FREE TOKENS',
-                    style: TextStyle(
-                      fontFamily: 'PressStart2P',
-                      fontSize: 10,
-                      color: AppColors.neonGreen,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  _shopItem(
-                    'Watch Ad',
-                    '+1 Token',
-                    '${tokenState.adsWatchedToday}/10 today',
-                    tokenState.canWatchAd,
-                    () {
-                      final adService = ref.read(adServiceProvider);
-                      adService.showRewarded(
-                        onRewarded: () {
-                          ref.read(tokenProvider.notifier).claimAdReward();
-                        },
-                      );
-                    },
+            Container(
+              width: 62,
+              height: 62,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFFFEBA2), Color(0xFFFFC842), Color(0xFFC67D09)],
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0x55FFD36A),
+                    blurRadius: 18,
+                    offset: const Offset(0, 8),
                   ),
                 ],
               ),
+              child: const Icon(Icons.monetization_on, color: Color(0xFF7E4600), size: 34),
             ),
-            const SizedBox(height: 16),
-
-            // Token packs
-            RetroCard(
-              borderColor: AppColors.gold,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'TOKEN PACKS',
-                    style: TextStyle(
-                      fontFamily: 'PressStart2P',
-                      fontSize: 10,
-                      color: AppColors.gold,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  _tokenPackItem('20 Tokens', '\$0.99', IAPProducts.tokenPack20, iap, ref),
-                  const SizedBox(height: 8),
-                  _tokenPackItem('50 Tokens', '\$1.99', IAPProducts.tokenPack50, iap, ref),
-                  const SizedBox(height: 8),
-                  _tokenPackItem('120 Tokens', '\$4.99', IAPProducts.tokenPack120, iap, ref),
-                  const SizedBox(height: 8),
-                  _tokenPackItem('300 Tokens', '\$9.99', IAPProducts.tokenPack300, iap, ref),
-                  const SizedBox(height: 8),
-                  _tokenPackItem('750 Tokens', '\$19.99', IAPProducts.tokenPack750, iap, ref),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Theme packs
-            RetroCard(
-              borderColor: AppColors.neonPink,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'THEME PACKS',
-                    style: TextStyle(
-                      fontFamily: 'PressStart2P',
-                      fontSize: 10,
-                      color: AppColors.neonPink,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  _iapItem('Art Collection', '\$2.99', IAPProducts.themeArt, iap, ref),
-                  const SizedBox(height: 8),
-                  _iapItem('Cars & Speed', '\$2.99', IAPProducts.themeCars, iap, ref),
-                  const SizedBox(height: 8),
-                  _iapItem('Fantasy World', '\$2.99', IAPProducts.themeFantasy, iap, ref),
-                  const SizedBox(height: 8),
-                  _iapItem('Neon City', '\$2.99', IAPProducts.themeNeon, iap, ref),
-                  const SizedBox(height: 8),
-                  _iapItem('Legends', '\$3.99', IAPProducts.themeLegend, iap, ref),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Subscriptions & one-time
-            RetroCard(
-              borderColor: AppColors.neonBlue,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'PREMIUM',
-                    style: TextStyle(
-                      fontFamily: 'PressStart2P',
-                      fontSize: 10,
-                      color: AppColors.neonBlue,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  _premiumItem(
-                    context,
-                    'Remove Ads',
-                    '\$3.99 once',
-                    'ad_free',
-                    AppColors.neonGreen,
-                  ),
-                  const SizedBox(height: 8),
-                  _premiumItem(
-                    context,
-                    'Custom Image',
-                    'from \$2.99/mo',
-                    'custom_image',
-                    AppColors.neonPink,
-                  ),
-                  const SizedBox(height: 8),
-                  _premiumItem(
-                    context,
-                    'Premium All-in-One',
-                    'from \$6.99/mo',
-                    'premium',
-                    AppColors.gold,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Restore purchases
-            TextButton(
-              onPressed: () async {
-                await iap.restorePurchases();
-                ref.read(userProvider.notifier).refreshEntitlements();
-              },
-              child: const Text(
-                'RESTORE PURCHASES',
-                style: TextStyle(
-                  fontFamily: 'PressStart2P',
-                  fontSize: 8,
-                  color: AppColors.neonBlue,
+            const SizedBox(width: 14),
+            Expanded(
+              child: Text(
+                label ?? '${item.$1} TOKENS',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 18,
                 ),
               ),
             ),
-            const SizedBox(height: 24),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _shopItem(
-    String title,
-    String reward,
-    String subtitle,
-    bool enabled,
-    VoidCallback onTap,
-  ) {
-    return GestureDetector(
-      onTap: enabled ? onTap : null,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        decoration: BoxDecoration(
-          color: enabled
-              ? AppColors.neonGreen.withValues(alpha: 0.1)
-              : AppColors.gridLine.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(4),
-          border: Border.all(
-            color: enabled ? AppColors.neonGreen : AppColors.gridLine,
-          ),
-        ),
-        child: Row(
-          children: [
-            Icon(Icons.play_circle_fill,
-                color: enabled ? AppColors.neonGreen : AppColors.gridLine,
-                size: 24),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title,
-                      style: TextStyle(
-                        fontFamily: 'PressStart2P',
-                        fontSize: 9,
-                        color: enabled ? AppColors.white : AppColors.gridLine,
-                      )),
-                  Text(subtitle,
-                      style: const TextStyle(
-                        fontFamily: 'PressStart2P',
-                        fontSize: 7,
-                        color: AppColors.gridLine,
-                      )),
-                ],
+            Text(
+              item.$2,
+              style: const TextStyle(
+                color: Color(0xFFFFD36A),
+                fontSize: 18,
+                fontWeight: FontWeight.w900,
               ),
             ),
-            Text(reward,
-                style: TextStyle(
-                  fontFamily: 'PressStart2P',
-                  fontSize: 9,
-                  color: enabled ? AppColors.gold : AppColors.gridLine,
-                )),
           ],
         ),
       ),
     );
   }
 
-  Widget _tokenPackItem(
-    String name,
-    String price,
-    String productId,
-    IAPService iap,
-    WidgetRef ref,
-  ) {
-    return GestureDetector(
-      onTap: () async {
-        final products = await iap.getProducts([productId]);
-        if (products.isNotEmpty) {
-          final info = await iap.purchase(products.first);
-          if (info != null) {
-            // Token count would be granted server-side via webhook
-          }
-        }
-      },
-      child: _iapRow(name, price, AppColors.gold),
-    );
-  }
-
-  Widget _iapItem(
-    String name,
-    String price,
-    String productId,
-    IAPService iap,
-    WidgetRef ref,
-  ) {
-    return GestureDetector(
-      onTap: () async {
-        final products = await iap.getProducts([productId]);
-        if (products.isNotEmpty) {
-          await iap.purchase(products.first);
-          await ref.read(userProvider.notifier).refreshEntitlements();
-        }
-      },
-      child: _iapRow(name, price, AppColors.neonPink),
-    );
-  }
-
-  Widget _premiumItem(
-    BuildContext context,
-    String name,
-    String price,
-    String feature,
-    Color color,
-  ) {
-    return GestureDetector(
-      onTap: () => context.push('/paywall/$feature'),
-      child: _iapRow(name, price, color),
-    );
-  }
-
-  Widget _iapRow(String name, String price, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(
-            child: Text(name,
-                style: const TextStyle(
-                  fontFamily: 'PressStart2P',
-                  fontSize: 8,
-                  color: AppColors.white,
-                )),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius: BorderRadius.circular(4),
+  Widget _themeCard((String, String, bool) item) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: _glassCard(
+        padding: EdgeInsets.zero,
+        child: Stack(
+          children: [
+            Row(
+              children: [
+                ClipRRect(
+                  borderRadius: const BorderRadius.horizontal(left: Radius.circular(22)),
+                  child: Image.asset(
+                    item.$2,
+                    width: 120,
+                    height: 92,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    child: Text(
+                      item.$1,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 18,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+              ],
             ),
-            child: Text(price,
-                style: const TextStyle(
-                  fontFamily: 'PressStart2P',
-                  fontSize: 7,
-                  color: AppColors.darkBg,
-                )),
+            if (item.$3)
+              Positioned(
+                top: 12,
+                right: 12,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(999),
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFFFFE58E), Color(0xFFFFB52E)],
+                    ),
+                  ),
+                  child: Row(
+                    children: const [
+                      Icon(Icons.lock, size: 14, color: Color(0xFF5F3800)),
+                      SizedBox(width: 4),
+                      Text(
+                        'PREMIUM',
+                        style: TextStyle(
+                          color: Color(0xFF5F3800),
+                          fontWeight: FontWeight.w900,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _glassCard({
+    required Widget child,
+    EdgeInsetsGeometry padding = const EdgeInsets.all(16),
+  }) {
+    return Container(
+      padding: padding,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(22),
+        color: const Color(0x22161A23),
+        border: Border.all(color: const Color(0x33A8D8FF)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.22),
+            blurRadius: 18,
+            offset: const Offset(0, 12),
           ),
         ],
+      ),
+      child: child,
+    );
+  }
+
+  Widget _sectionTitle(String text) {
+    return Text(
+      text,
+      style: const TextStyle(
+        color: Color(0xFFA7F7FF),
+        fontSize: 18,
+        fontWeight: FontWeight.w900,
+        letterSpacing: 1.2,
+      ),
+    );
+  }
+
+  Widget _circleButton(IconData icon, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: const Color(0x22161A23),
+          border: Border.all(color: const Color(0x44A8D8FF)),
+        ),
+        child: Icon(icon, color: Colors.white, size: 20),
       ),
     );
   }

@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'dart:ui';
 import 'package:flame/components.dart';
+import 'powerups.dart';
 import '../utils/game_constants.dart';
 
 class Hud extends Component {
@@ -11,6 +12,8 @@ class Hud extends Component {
   int tokens = 0;
   int score = 0;
   int combo = 0;
+  ActivePowerUp? activePowerUp; // legacy single
+  List<ActivePowerUp> activeEffects = []; // all active effects
 
   final double gameWidth;
   final double hudHeight = GameConstants.hudHeight;
@@ -21,11 +24,24 @@ class Hud extends Component {
   String? _popup;
   double _popupTimer = 0;
 
+  // Power-up announcement (big center popup)
+  String? _puAnnouncement;
+  String? _puDescription;
+  Color _puColor = const Color(0xFFFFFFFF);
+  double _puTimer = 0;
+
   Hud({required this.gameWidth});
 
   void showPopup(String text) {
     _popup = text;
     _popupTimer = 1.5;
+  }
+
+  void showPowerUpAnnouncement(String title, String desc, Color color) {
+    _puAnnouncement = title;
+    _puDescription = desc;
+    _puColor = color;
+    _puTimer = 2.0;
   }
 
   @override
@@ -34,6 +50,7 @@ class Hud extends Component {
     _heartBeat += dt * 4;
     _progressGlow += dt * 3;
     if (_popupTimer > 0) _popupTimer -= dt;
+    if (_puTimer > 0) _puTimer -= dt;
   }
 
   @override
@@ -76,6 +93,152 @@ class Hud extends Component {
       _drawText(canvas, _popup!, gameWidth / 2 - 60, popY,
         fontSize: 16, color: Color.fromARGB((alpha * 255).toInt(), 0, 255, 136));
     }
+
+    // Active power-ups — multiple effects side by side
+    for (int i = 0; i < activeEffects.length; i++) {
+      _drawActivePowerUpAt(canvas, activeEffects[i], i);
+    }
+
+    // Big center announcement (when new power-up collected)
+    if (_puTimer > 0 && _puAnnouncement != null) {
+      _drawAnnouncement(canvas);
+    }
+  }
+
+  void _drawAnnouncement(Canvas canvas) {
+    // Fade in first 0.3s, hold, fade out last 0.4s
+    final t = _puTimer / 2.0;
+    double alpha;
+    double scale;
+    if (t > 0.85) {
+      // fade in (remaining 2.0→1.7)
+      final p = (2.0 - _puTimer) / 0.3;
+      alpha = p.clamp(0.0, 1.0);
+      scale = 0.7 + 0.3 * alpha;
+    } else if (t < 0.2) {
+      // fade out
+      alpha = (t / 0.2).clamp(0.0, 1.0);
+      scale = 1.0;
+    } else {
+      alpha = 1.0;
+      scale = 1.0;
+    }
+
+    final cx = gameWidth / 2;
+    final cy = hudHeight + 120;
+
+    canvas.save();
+    canvas.translate(cx, cy);
+    canvas.scale(scale);
+    canvas.translate(-cx, -cy);
+
+    // Background dark panel
+    final panelW = gameWidth * 0.85;
+    final panelH = 100.0;
+    final panelRect = Rect.fromCenter(
+      center: Offset(cx, cy),
+      width: panelW, height: panelH,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(panelRect, const Radius.circular(12)),
+      Paint()..color = Color.fromARGB((alpha * 220).toInt(), 10, 10, 30),
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(panelRect, const Radius.circular(12)),
+      Paint()
+        ..color = _puColor.withValues(alpha: alpha * 0.8)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2,
+    );
+    // Glow
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(panelRect, const Radius.circular(12)),
+      Paint()
+        ..color = _puColor.withValues(alpha: alpha * 0.4)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 6
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8),
+    );
+
+    // Title
+    final titleBuilder = ParagraphBuilder(ParagraphStyle(
+      fontSize: 20, fontFamily: 'PressStart2P', textAlign: TextAlign.center,
+    ))
+      ..pushStyle(TextStyle(
+        color: Color.fromARGB((alpha * 255).toInt(),
+          _puColor.r.toInt(), _puColor.g.toInt(), _puColor.b.toInt()),
+        shadows: [Shadow(color: _puColor, blurRadius: 12)],
+      ))
+      ..addText(_puAnnouncement!);
+    final titleP = titleBuilder.build()..layout(ParagraphConstraints(width: panelW));
+    canvas.drawParagraph(titleP, Offset(cx - panelW / 2, cy - 32));
+
+    // Description
+    final descBuilder = ParagraphBuilder(ParagraphStyle(
+      fontSize: 9, fontFamily: 'PressStart2P', textAlign: TextAlign.center,
+    ))
+      ..pushStyle(TextStyle(
+        color: Color.fromARGB((alpha * 200).toInt(), 255, 255, 255),
+      ))
+      ..addText(_puDescription ?? '');
+    final descP = descBuilder.build()..layout(ParagraphConstraints(width: panelW));
+    canvas.drawParagraph(descP, Offset(cx - panelW / 2, cy + 10));
+
+    canvas.restore();
+  }
+
+  void _drawActivePowerUpAt(Canvas canvas, ActivePowerUp ap, int index) {
+    final x = gameWidth - 100 - index * 36.0;
+    final y = 28.0;
+    final frac = (ap.remaining / ap.total).clamp(0.0, 1.0);
+
+    Color col;
+    switch (ap.type) {
+      case PowerUpType.freeze: col = const Color(0xFF00DDFF);
+      case PowerUpType.speed: col = const Color(0xFFFFDD00);
+      case PowerUpType.shield: col = const Color(0xFF00FF88);
+    }
+
+    // Glow
+    canvas.drawCircle(Offset(x, y), 16, Paint()
+      ..color = col.withValues(alpha: 0.3)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6));
+    // Circle bg
+    canvas.drawCircle(Offset(x, y), 13, Paint()..color = const Color(0xDD000018));
+    canvas.drawCircle(Offset(x, y), 13, Paint()
+      ..color = col..style = PaintingStyle.stroke..strokeWidth = 1.5);
+
+    // Mini icon
+    switch (ap.type) {
+      case PowerUpType.freeze:
+        for (int i = 0; i < 6; i++) {
+          final a = i * pi / 3;
+          canvas.drawLine(Offset(x, y), Offset(x + cos(a) * 7, y + sin(a) * 7),
+            Paint()..color = col..strokeWidth = 1.4..strokeCap = StrokeCap.round);
+        }
+      case PowerUpType.speed:
+        final p = Path()
+          ..moveTo(x - 2, y - 6)..lineTo(x + 3, y - 1)
+          ..lineTo(x - 1, y - 1)..lineTo(x + 2, y + 6)
+          ..lineTo(x - 3, y + 1)..lineTo(x + 1, y + 1)..close();
+        canvas.drawPath(p, Paint()..color = col);
+      case PowerUpType.shield:
+        final p = Path()
+          ..moveTo(x, y - 7)..lineTo(x + 6, y - 4)
+          ..lineTo(x + 6, y + 2)..lineTo(x, y + 7)
+          ..lineTo(x - 6, y + 2)..lineTo(x - 6, y - 4)..close();
+        canvas.drawPath(p, Paint()..color = col..style = PaintingStyle.stroke..strokeWidth = 1.8);
+    }
+
+    // Progress bar under icon
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(Rect.fromLTWH(x - 15, y + 17, 30, 3), const Radius.circular(1.5)),
+      Paint()..color = const Color(0x44FFFFFF),
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(Rect.fromLTWH(x - 15, y + 17, 30 * frac, 3), const Radius.circular(1.5)),
+      Paint()..color = col,
+    );
   }
 
   void _drawHearts(Canvas canvas) {

@@ -19,14 +19,26 @@ class GameGrid extends Component {
   int levelId = 1;
 
   /// Level-based overlay colors (Gals Panic style)
-  // Overlay: 0xEB = 235/255 ≈ 0.92 opacity. Silhouette barely visible.
+  // Overlay: 0xF5 ≈ 0.96 opacity. Silhouette barely perceptible.
+  // 0xF8 = 248/255 ≈ 0.97 opacity — very opaque, barely see silhouette
   static const _overlayColors = [
-    Color(0xEB0022AA), // Level 1: Blue
-    Color(0xEB6600AA), // Level 2: Purple
-    Color(0xEB006633), // Level 3: Green
-    Color(0xEB994400), // Level 4: Orange
-    Color(0xEB990022), // Level 5: Red
+    Color(0xF8001A88), // Level 1: Dark blue
+    Color(0xF82A0055), // Level 2: Dark purple (muted, not bright)
+    Color(0xF8004422), // Level 3: Dark green
+    Color(0xF8663300), // Level 4: Dark orange-brown
+    Color(0xF8660018), // Level 5: Dark red
   ];
+
+  /// Complementary trail color for each level — high contrast neon
+  static const _trailColors = [
+    Color(0xFFFFEE00), // Level 1 (Blue) → Yellow
+    Color(0xFF00FFFF), // Level 2 (Purple) → Cyan
+    Color(0xFFFF00AA), // Level 3 (Green) → Pink
+    Color(0xFF00AAFF), // Level 4 (Orange) → Blue
+    Color(0xFF00FF66), // Level 5 (Red) → Green
+  ];
+
+  Color get trailColor => _trailColors[(levelId - 1) % _trailColors.length];
 
   Color get overlayColor => _overlayColors[(levelId - 1) % _overlayColors.length];
 
@@ -104,18 +116,18 @@ class GameGrid extends Component {
   // ---- CAPTURE ----
 
   void capture(List<(int, int)> enemyGridPos) {
-    // Count trail cells before converting
+    // Reset lastClaimed — will collect BOTH trail→claimed AND flood-fill claimed
+    lastClaimed.clear();
+
+    // Count + convert trail cells (trail → claimed AND add to lastClaimed)
     int trailCount = 0;
     for (int r = 0; r < gridRows; r++) {
       for (int c = 0; c < gridCols; c++) {
-        if (cells[r][c] == CellState.trail) trailCount++;
-      }
-    }
-
-    // 1. Trail → Claimed (trail becomes wall)
-    for (int r = 0; r < gridRows; r++) {
-      for (int c = 0; c < gridCols; c++) {
-        if (cells[r][c] == CellState.trail) cells[r][c] = CellState.claimed;
+        if (cells[r][c] == CellState.trail) {
+          cells[r][c] = CellState.claimed;
+          lastClaimed.add((c, r));
+          trailCount++;
+        }
       }
     }
 
@@ -144,7 +156,7 @@ class GameGrid extends Component {
     debugPrint('Enemy positions: $enemyGridPos');
 
     // 3. Decide which region(s) to claim
-    lastClaimed.clear();
+    // (do NOT clear lastClaimed — keep trail cells already added in step 1)
     if (regions.isEmpty || regions.length <= 1) {
       debugPrint('  -> Only ${regions.length} region(s), nothing to claim beyond trail');
       flashAlpha = 1.0;
@@ -257,20 +269,20 @@ class GameGrid extends Component {
     if (flashAlpha > 0) flashAlpha = (flashAlpha - dt * 2.5).clamp(0.0, 1.0);
   }
 
-  // Pixel-snapped rects — floor start, ceil end → no gaps, slight overlap OK
+  // Pixel-snapped rects — adjacent cells share floor coordinate + 1px overlap → zero gaps
   Rect _cellRect(int c, int r) {
     final x1 = (bounds.left + c * cellW).floorToDouble();
     final y1 = (bounds.top + r * cellH).floorToDouble();
-    final x2 = (bounds.left + (c + 1) * cellW).ceilToDouble();
-    final y2 = (bounds.top + (r + 1) * cellH).ceilToDouble();
+    final x2 = (bounds.left + (c + 1) * cellW).floorToDouble() + 1;
+    final y2 = (bounds.top + (r + 1) * cellH).floorToDouble() + 1;
     return Rect.fromLTRB(x1, y1, x2, y2);
   }
 
   Rect _cellRangeRect(int c1, int c2, int r) {
     final x1 = (bounds.left + c1 * cellW).floorToDouble();
     final y1 = (bounds.top + r * cellH).floorToDouble();
-    final x2 = (bounds.left + c2 * cellW).ceilToDouble();
-    final y2 = (bounds.top + (r + 1) * cellH).ceilToDouble();
+    final x2 = (bounds.left + c2 * cellW).floorToDouble() + 1;
+    final y2 = (bounds.top + (r + 1) * cellH).floorToDouble() + 1;
     return Rect.fromLTRB(x1, y1, x2, y2);
   }
 
