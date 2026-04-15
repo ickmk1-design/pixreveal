@@ -29,7 +29,6 @@ class LevelSelectScreen extends StatelessWidget {
       _LevelItem(number: 9, stars: 0, unlocked: false),
       _LevelItem(number: 10, stars: 0, unlocked: false),
       _LevelItem(number: 11, stars: 0, unlocked: false),
-      _LevelItem(number: 12, stars: 0, unlocked: false),
     ];
 
     return Scaffold(
@@ -75,7 +74,7 @@ class LevelSelectScreen extends StatelessWidget {
                     final level = levels[index];
                     return GestureDetector(
                       onTap: () => level.unlocked
-                          ? context.go('/game?level=${level.number}')
+                          ? context.go('/game?level=${level.number}&img=cars_${level.number}.jpg&cat=SUPER+CARS')
                           : null,
                       child: _LevelCard(item: level),
                     );
