@@ -1,99 +1,84 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../utils/localization.dart';
+
 import '../widgets/coin_badge.dart';
 import '../widgets/gold_star.dart';
 import '../widgets/space_background.dart';
 
-class LevelSelectScreen extends StatefulWidget {
-  final String categoryName;
-  final List<String> categoryImages;
-  const LevelSelectScreen({
-    super.key,
-    this.categoryName = 'SUPER CARS',
-    this.categoryImages = const ['cars_1.jpg', 'cars_2.jpg', 'cars_3.jpg'],
-  });
+class LevelSelectScreen extends StatelessWidget {
+  const LevelSelectScreen({super.key});
 
-  @override
-  State<LevelSelectScreen> createState() => _LevelSelectScreenState();
-}
-
-class _LevelSelectScreenState extends State<LevelSelectScreen> {
-  int _unlockedLevel = 1;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadUnlocked();
-  }
-
-  Future<void> _loadUnlocked() async {
-    final prefs = await SharedPreferences.getInstance();
-    final key = 'unlocked_${widget.categoryName}';
-    final u = prefs.getInt(key) ?? 1;
-    if (mounted) setState(() => _unlockedLevel = u);
-  }
-
-  String get _categoryTitle => widget.categoryName;
-
-  List<_LevelData> get levels {
-    return List.generate(11, (i) {
-      final id = i + 1;
-      return _LevelData(id, 'LEVEL $id', id <= _unlockedLevel, 0);
-    });
-  }
+  TextStyle get _pixelTitle => const TextStyle(
+        fontFamily: 'PressStart2P',
+        fontSize: 17,
+        height: 1.35,
+        color: Colors.white,
+      );
 
   @override
   Widget build(BuildContext context) {
+    const levels = [
+      _LevelItem(number: 1, stars: 3, unlocked: true),
+      _LevelItem(number: 2, stars: 2, unlocked: true),
+      _LevelItem(number: 3, stars: 1, unlocked: true),
+      _LevelItem(number: 4, stars: 0, unlocked: false),
+      _LevelItem(number: 5, stars: 0, unlocked: false),
+      _LevelItem(number: 6, stars: 0, unlocked: false),
+      _LevelItem(number: 7, stars: 0, unlocked: false),
+      _LevelItem(number: 8, stars: 0, unlocked: false),
+      _LevelItem(number: 9, stars: 0, unlocked: false),
+      _LevelItem(number: 10, stars: 0, unlocked: false),
+      _LevelItem(number: 11, stars: 0, unlocked: false),
+      _LevelItem(number: 12, stars: 0, unlocked: false),
+    ];
+
     return Scaffold(
       body: SpaceBackground(
         child: SafeArea(
           child: Column(
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
                 child: Row(
                   children: [
-                    _circleButton(Icons.arrow_back_ios_new, () => context.go('/menu')),
-                    const Spacer(),
-                    Expanded(
-                      flex: 3,
-                      child: Center(
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Text(
-                            _categoryTitle,
-                            style: const TextStyle(
-                              color: Color(0xFF99F2FF),
-                              fontSize: 22,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 1.1,
-                              shadows: [Shadow(color: Color(0xAA12DBFF), blurRadius: 18)],
-                            ),
-                          ),
+                    GestureDetector(
+                      onTap: () => context.go('/image-select'),
+                      child: Container(
+                        width: 42,
+                        height: 42,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: const Color(0x22161A23),
+                          border: Border.all(color: const Color(0x33FFFFFF)),
                         ),
+                        child: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
                       ),
                     ),
+                    const Spacer(),
+                    Text('SUPER CARS', style: _pixelTitle),
                     const Spacer(),
                     const CoinBadge(),
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
               Expanded(
                 child: GridView.builder(
-                  padding: const EdgeInsets.fromLTRB(16, 6, 16, 24),
+                  padding: const EdgeInsets.fromLTRB(16, 18, 16, 24),
                   itemCount: levels.length,
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 3,
-                    childAspectRatio: 0.82,
-                    mainAxisSpacing: 14,
+                    childAspectRatio: 0.65,
                     crossAxisSpacing: 14,
+                    mainAxisSpacing: 14,
                   ),
                   itemBuilder: (context, index) {
                     final level = levels[index];
-                    return _levelCard(level);
+                    return GestureDetector(
+                      onTap: () => level.unlocked
+                          ? context.go('/game?level=${level.number}')
+                          : null,
+                      child: _LevelCard(item: level),
+                    );
                   },
                 ),
               ),
@@ -103,133 +88,100 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
       ),
     );
   }
+}
 
-  Widget _levelCard(_LevelData level) {
-    final bright = level.unlocked ? 1.0 : 0.7;
+class _LevelItem {
+  final int number;
+  final int stars;
+  final bool unlocked;
 
-    return GestureDetector(
-      onTap: level.unlocked ? () {
-        final images = widget.categoryImages;
-        final img = images[(level.number - 1) % images.length];
-        final cat = Uri.encodeComponent(widget.categoryName);
-        final imgs = images.join(',');
-        // ignore: avoid_print
-        print('Category: ${widget.categoryName}, Level: ${level.number}, Image: $img');
-        context.go('/game/${level.number}?img=$img&cat=$cat&imgs=$imgs');
-      } : null,
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(22),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color.lerp(const Color(0xFF162235), Colors.white, 0.02 * bright)!,
-              Color.lerp(const Color(0xFF0D1422), Colors.white, 0.01 * bright)!,
-            ],
-          ),
-          border: Border.all(
-            color: level.unlocked ? const Color(0xFF39D5FF) : const Color(0x33D6B56A),
-            width: 1.4,
-          ),
-          boxShadow: [
-            if (level.unlocked)
-              const BoxShadow(
-                color: Color(0x5538D9FF),
-                blurRadius: 18,
-                offset: Offset(0, 10),
-              ),
-          ],
+  const _LevelItem({
+    required this.number,
+    required this.stars,
+    required this.unlocked,
+  });
+}
+
+class _LevelCard extends StatelessWidget {
+  final _LevelItem item;
+
+  const _LevelCard({required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(22),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: item.unlocked
+              ? const [Color(0xFF15223A), Color(0xFF0D1526)]
+              : const [Color(0xFF121721), Color(0xFF0B0E14)],
         ),
-        child: Stack(
-          children: [
-            if (!level.unlocked)
-              Positioned(
-                top: 12,
-                right: 12,
-                child: Container(
-                  width: 34,
-                  height: 34,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFFFFE58E), Color(0xFFE0A72E)],
-                    ),
-                    boxShadow: const [
-                      BoxShadow(color: Color(0x55FFD36A), blurRadius: 12),
-                    ],
-                  ),
-                  child: const Icon(Icons.lock, color: Color(0xFF5E3600), size: 18),
+        border: Border.all(
+          color: item.unlocked ? const Color(0xFF3CD8FF) : const Color(0x55D8B263),
+          width: 1.4,
+        ),
+        boxShadow: item.unlocked
+            ? const [
+                BoxShadow(
+                  color: Color(0x223CD8FF),
+                  blurRadius: 18,
+                  offset: Offset(0, 10),
                 ),
-              ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(10, 14, 10, 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text(
-                    '${level.number}',
-                    style: TextStyle(
-                      color: level.unlocked ? Colors.white : Colors.white70,
-                      fontSize: 40,
-                      fontWeight: FontWeight.w900,
-                    ),
+              ]
+            : null,
+      ),
+      child: Stack(
+        children: [
+          if (!item.unlocked)
+            const Positioned(
+              top: 12,
+              right: 12,
+              child: Icon(Icons.lock, color: Color(0xFFFFD36A)),
+            ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(10, 16, 10, 12),
+            child: Column(
+              children: [
+                Text(
+                  '${item.number}',
+                  style: TextStyle(
+                    color: item.unlocked ? Colors.white : Colors.white54,
+                    fontSize: 38,
+                    fontWeight: FontWeight.w900,
                   ),
-                  Text(
-                    level.name,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: level.unlocked ? const Color(0xFFAEEFFF) : Colors.white54,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w800,
-                    ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'LEVEL ${item.number}',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: item.unlocked ? const Color(0xFFA9F2FF) : Colors.white38,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
                   ),
-                  const Spacer(),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(
-                      3,
-                      (i) => Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 1),
-                        child: GoldStar(
-                          size: 22,
-                          filled: i < level.stars,
-                          glow: i < level.stars,
-                        ),
+                ),
+                const Spacer(),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(
+                    3,
+                    (index) => Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 1),
+                      child: GoldStar(
+                        size: 22,
+                        filled: index < item.stars,
                       ),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
-
-  Widget _circleButton(IconData icon, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: const Color(0x22161A23),
-          border: Border.all(color: const Color(0x44A8D8FF)),
-        ),
-        child: Icon(icon, color: Colors.white, size: 20),
-      ),
-    );
-  }
-}
-
-class _LevelData {
-  final int number;
-  final String name;
-  final bool unlocked;
-  final int stars;
-
-  const _LevelData(this.number, this.name, this.unlocked, this.stars);
 }

@@ -100,7 +100,8 @@ class PixRevealGame extends FlameGame with KeyboardEvents {
 
     for (int i = 0; i < levelConfig.enemyCount; i++) {
       final spider = Spider(gameBounds: gameBounds, speedMultiplier: levelConfig.enemySpeedMultiplier);
-      spider.gameGrid = grid; // pass grid reference for movement constraint
+      spider.gameGrid = grid;
+      spider.priority = 10; // render on top of grid overlay
       enemies.add(spider);
       add(spider);
     }

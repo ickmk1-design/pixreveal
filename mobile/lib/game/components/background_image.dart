@@ -35,22 +35,25 @@ class BackgroundImage extends Component {
       final imgAspect = imgW / imgH;
       final boundsAspect = gameBounds.width / gameBounds.height;
 
-      double drawW, drawH;
+      // BoxFit.cover: fill gameBounds completely, crop overflow
+      double srcX, srcY, srcW, srcH;
       if (imgAspect > boundsAspect) {
-        // Image wider → fit to width, letterbox top/bottom
-        drawW = gameBounds.width;
-        drawH = gameBounds.width / imgAspect;
+        // Image wider than bounds → crop left/right, fill height
+        srcH = imgH;
+        srcW = imgH * boundsAspect;
+        srcX = (imgW - srcW) / 2;
+        srcY = 0;
       } else {
-        // Image taller → fit to height, pillarbox left/right
-        drawH = gameBounds.height;
-        drawW = gameBounds.height * imgAspect;
+        // Image taller than bounds → crop top/bottom, fill width
+        srcW = imgW;
+        srcH = imgW / boundsAspect;
+        srcX = 0;
+        srcY = (imgH - srcH) / 2;
       }
 
-      final offsetX = gameBounds.left + (gameBounds.width - drawW) / 2;
-      final offsetY = gameBounds.top + (gameBounds.height - drawH) / 2;
-
-      final src = ui.Rect.fromLTWH(0, 0, imgW, imgH);
-      final dst = ui.Rect.fromLTWH(offsetX, offsetY, drawW, drawH);
+      final src = ui.Rect.fromLTWH(srcX, srcY, srcW, srcH);
+      final dst = ui.Rect.fromLTWH(
+          gameBounds.left, gameBounds.top, gameBounds.width, gameBounds.height);
 
       canvas.drawImageRect(_image!, src, dst, ui.Paint()
         ..filterQuality = ui.FilterQuality.high

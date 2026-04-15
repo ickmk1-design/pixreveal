@@ -1,15 +1,66 @@
 import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../models/token_model.dart';
 import '../utils/constants.dart';
 
-final tokenProvider = StateNotifierProvider<TokenNotifier, TokenModel>((ref) {
-  return TokenNotifier();
-});
+class TokenState {
+  final int tokens;
+  final int lives;
+  final int adsWatchedToday;
+  final DateTime? lastDailyLogin;
 
-class TokenNotifier extends StateNotifier<TokenModel> {
-  TokenNotifier() : super(const TokenModel()) {
+  const TokenState({
+    this.tokens = 1250,
+    this.lives = 3,
+    this.adsWatchedToday = 0,
+    this.lastDailyLogin,
+  });
+
+  bool get hasDailyLoginAvailable {
+    if (lastDailyLogin == null) return true;
+    final now = DateTime.now();
+    final last = lastDailyLogin!;
+    return now.day != last.day || now.month != last.month || now.year != last.year;
+  }
+
+  bool get canWatchAd => adsWatchedToday < GameConfig.maxAdRewardsPerDay;
+
+  TokenState copyWith({
+    int? tokens,
+    int? lives,
+    int? adsWatchedToday,
+    DateTime? lastDailyLogin,
+  }) {
+    return TokenState(
+      tokens: tokens ?? this.tokens,
+      lives: lives ?? this.lives,
+      adsWatchedToday: adsWatchedToday ?? this.adsWatchedToday,
+      lastDailyLogin: lastDailyLogin ?? this.lastDailyLogin,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'tokens': tokens,
+        'lives': lives,
+        'adsWatchedToday': adsWatchedToday,
+        'lastDailyLogin': lastDailyLogin?.toIso8601String(),
+      };
+
+  factory TokenState.fromJson(Map<String, dynamic> json) => TokenState(
+        tokens: (json['tokens'] as int?) ?? 1250,
+        lives: (json['lives'] as int?) ?? 3,
+        adsWatchedToday: (json['adsWatchedToday'] as int?) ?? 0,
+        lastDailyLogin: json['lastDailyLogin'] != null
+            ? DateTime.tryParse(json['lastDailyLogin'] as String)
+            : null,
+      );
+}
+
+final tokenProvider =
+    StateNotifierProvider<TokenNotifier, TokenState>((ref) => TokenNotifier());
+
+class TokenNotifier extends StateNotifier<TokenState> {
+  TokenNotifier() : super(const TokenState()) {
     _load();
   }
 
@@ -17,17 +68,21 @@ class TokenNotifier extends StateNotifier<TokenModel> {
     final prefs = await SharedPreferences.getInstance();
     final data = prefs.getString('token_data');
     if (data != null) {
-      state = TokenModel.fromJson(jsonDecode(data));
-      // Reset daily ad count if new day
-      if (state.lastDailyLogin != null) {
-        final now = DateTime.now();
-        final last = state.lastDailyLogin!;
-        if (now.day != last.day ||
-            now.month != last.month ||
-            now.year != last.year) {
-          state = state.copyWith(adsWatchedToday: 0);
+      try {
+        final s = TokenState.fromJson(jsonDecode(data) as Map<String, dynamic>);
+        // Reset daily ad count if new day
+        if (s.lastDailyLogin != null) {
+          final now = DateTime.now();
+          final last = s.lastDailyLogin!;
+          if (now.day != last.day ||
+              now.month != last.month ||
+              now.year != last.year) {
+            state = s.copyWith(adsWatchedToday: 0);
+            return;
+          }
         }
-      }
+        state = s;
+      } catch (_) {}
     }
   }
 
