@@ -134,7 +134,7 @@ class Hud extends Component {
 
     // Background dark panel
     final panelW = gameWidth * 0.85;
-    final panelH = 100.0;
+    const panelH = 100.0;
     final panelRect = Rect.fromCenter(
       center: Offset(cx, cy),
       width: panelW, height: panelH,
@@ -189,7 +189,7 @@ class Hud extends Component {
 
   void _drawActivePowerUpAt(Canvas canvas, ActivePowerUp ap, int index) {
     final x = gameWidth - 100 - index * 36.0;
-    final y = 28.0;
+    const y = 28.0;
     final frac = (ap.remaining / ap.total).clamp(0.0, 1.0);
 
     Color col;

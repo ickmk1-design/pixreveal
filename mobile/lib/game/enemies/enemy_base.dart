@@ -31,7 +31,7 @@ abstract class EnemyBase extends PositionComponent {
   Offset get centerOffset => Offset(position.x, position.y);
 
   void spawnRandom() {
-    final margin = 50.0;
+    const margin = 50.0;
     position = Vector2(
       gameBounds.left + margin + rng.nextDouble() * (gameBounds.width - margin * 2),
       gameBounds.top + margin + rng.nextDouble() * (gameBounds.height - margin * 2),

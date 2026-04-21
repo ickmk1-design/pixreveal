@@ -72,7 +72,7 @@ class Spider extends EnemyBase {
   void render(ui.Canvas canvas) {
     final cx = radius, cy = radius;
     final wobble = sin(_wobble) * 1.5;
-    final chasing = this.isChasing;
+    final chasing = isChasing;
 
     if (_sprite != null) {
       // Aura glow

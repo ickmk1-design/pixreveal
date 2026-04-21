@@ -127,11 +127,11 @@ class Player extends PositionComponent {
     // Engine trail (short exhaust)
     if (direction != MoveDirection.none) {
       final trailLen = 3 + sin(_engineFlicker * 1.5) * 2;
-      canvas.drawLine(Offset(-2, 9), Offset(-2, 9 + trailLen),
+      canvas.drawLine(const Offset(-2, 9), Offset(-2, 9 + trailLen),
         Paint()..color = Color.fromARGB((engineGlow * 150).toInt(), 0, 180, 255)
           ..strokeWidth = 2..strokeCap = StrokeCap.round
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2));
-      canvas.drawLine(Offset(2, 9), Offset(2, 9 + trailLen),
+      canvas.drawLine(const Offset(2, 9), Offset(2, 9 + trailLen),
         Paint()..color = Color.fromARGB((engineGlow * 150).toInt(), 0, 180, 255)
           ..strokeWidth = 2..strokeCap = StrokeCap.round
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2));

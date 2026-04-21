@@ -54,7 +54,7 @@ class PixRevealGame extends FlameGame with KeyboardEvents {
 
   double get capturedPercent => grid.percent;
 
-  int _tokens;
+  final int _tokens;
   final String imageFile;
   PixRevealGame({required this.levelConfig, required this.lives, int tokens = 0,
     this.imageFile = 'level_1.jpg'}) : _tokens = tokens;
@@ -66,7 +66,7 @@ class PixRevealGame extends FlameGame with KeyboardEvents {
   Future<void> onLoad() async {
     await super.onLoad();
 
-    final hudH = GameConstants.hudHeight;
+    const hudH = GameConstants.hudHeight;
     // Game area with padding — leaves room for border glow + safe area
     gameBounds = Rect.fromLTWH(
       4,
@@ -82,8 +82,8 @@ class PixRevealGame extends FlameGame with KeyboardEvents {
     grid.levelId = levelConfig.id;
     add(grid);
 
-    final startCol = GameGrid.gridCols ~/ 2;
-    final startRow = GameGrid.gridRows - 1; // bottom border
+    const startCol = GameGrid.gridCols ~/ 2;
+    const startRow = GameGrid.gridRows - 1; // bottom border
     // Dynamic player size — scaled to ~4 cells, clamped 12-22
     final cellMin = grid.cellW < grid.cellH ? grid.cellW : grid.cellH;
     final playerSize = (cellMin * 4).clamp(12.0, 22.0);
@@ -463,7 +463,7 @@ class PixRevealGame extends FlameGame with KeyboardEvents {
     _moveTimer = 0;
     _combo = 0;
 
-    final sc = GameGrid.gridCols ~/ 2;
+    const sc = GameGrid.gridCols ~/ 2;
     _movePlayer(sc, GameGrid.gridRows - 1);
 
     lives--;
