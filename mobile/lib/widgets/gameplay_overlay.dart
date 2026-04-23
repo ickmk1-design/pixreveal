@@ -3,7 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'dart:math' show pi;
 
 class GameplayOverlay extends StatefulWidget {
-  const GameplayOverlay({super.key});
+  final Rect imgRect;
+  const GameplayOverlay({super.key, required this.imgRect});
 
   @override
   State<GameplayOverlay> createState() => _GameplayOverlayState();
@@ -58,11 +59,11 @@ class _GameplayOverlayState extends State<GameplayOverlay>
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final overlayLeft = size.width * 0.02;
-    final overlayTop = size.height * 0.07;
-    final overlayWidth = size.width * 0.96;
-    final overlayHeight = size.height * 0.86;
+    final r = widget.imgRect;
+    final overlayLeft = r.left + r.width * 0.02;
+    final overlayTop = r.top + r.height * 0.07;
+    final overlayWidth = r.width * 0.96;
+    final overlayHeight = r.height * 0.86;
 
     return Positioned(
       left: overlayLeft,

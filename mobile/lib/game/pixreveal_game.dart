@@ -48,7 +48,7 @@ class PixRevealGame extends FlameGame with KeyboardEvents {
 
 
 
-  Function(double captured, int stars)? onWin;
+  Function(double captured, int stars, int score, int combo, int elapsedSeconds)? onWin;
   Function()? onLose;
   Function(int lives)? onLifeLost;
 
@@ -385,7 +385,7 @@ class PixRevealGame extends FlameGame with KeyboardEvents {
     if (pct >= GameConstants.winThreshold) {
       gameState = PixGameState.won;
       final stars = pct >= 0.95 ? 3 : pct >= 0.90 ? 2 : 1;
-      onWin?.call(pct, stars);
+      onWin?.call(pct, stars, _score, _combo, _elapsedSeconds);
     } else {
       _checkAccessibility();
     }

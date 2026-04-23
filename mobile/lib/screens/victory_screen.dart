@@ -1,30 +1,148 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../widgets/mockup_screen.dart';
+import '../services/level_progress.dart';
+import '../services/audio_service.dart';
 
 class VictoryScreen extends StatelessWidget {
-  const VictoryScreen({super.key});
+  final int levelId;
+  final int score;
+  final int combo;
+  final int timeSeconds;
+
+  const VictoryScreen({
+    super.key,
+    this.levelId = 1,
+    this.score = 0,
+    this.combo = 1,
+    this.timeSeconds = 0,
+  });
+
+  String _formatTime(int secs) {
+    final m = (secs ~/ 60).toString().padLeft(2, '0');
+    final s = (secs % 60).toString().padLeft(2, '0');
+    return '$m:$s';
+  }
+
+  String _formatScore(int s) {
+    final str = s.toString();
+    final buf = StringBuffer();
+    for (int i = 0; i < str.length; i++) {
+      if (i > 0 && (str.length - i) % 3 == 0) buf.write(',');
+      buf.write(str[i]);
+    }
+    return buf.toString();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final imageAsset =
+        'assets/images/${CurrentCategory.current.assetKey}_$levelId.jpg';
+
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0E27),
-      body: MockupScreen(
-        screen: 'victory',
-        assetPath: 'assets/images/victory.png',
-        onNavigate: (target, id) => _navigate(context, target, id),
+      backgroundColor: const Color(0xFF050510),
+      body: SafeArea(
+        child: MockupScreen(
+          screen: 'victory',
+          assetPath: 'assets/images/victory.png',
+          onNavigate: (target, id) => _navigate(context, target),
+          overlayBuilder: (size) => [
+            // Kategori resmi
+            Positioned(
+              left: size.width * 0.21,
+              top: size.height * 0.305,
+              width: size.width * 0.54,
+              height: size.height * 0.245,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: Image.asset(
+                  imageAsset,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) =>
+                      Container(color: const Color(0xFF1A0F2E)),
+                ),
+              ),
+            ),
+
+            // SCORE — x=46.3%, y=60.4%
+            Positioned(
+              left: size.width * 0.463,
+              top: size.height * 0.582,
+              width: size.width * 0.40,
+              height: size.height * 0.045,
+              child: IgnorePointer(
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    _formatScore(score),
+                    style: TextStyle(
+                      fontSize: size.height * 0.028,
+                      fontWeight: FontWeight.w900,
+                      color: const Color(0xFFFFC107),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            // COMBO — x=56.3%, y=65.0%
+            Positioned(
+              left: size.width * 0.563,
+              top: size.height * 0.633,
+              width: size.width * 0.30,
+              height: size.height * 0.035,
+              child: IgnorePointer(
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'x$combo',
+                    style: TextStyle(
+                      fontSize: size.height * 0.022,
+                      fontWeight: FontWeight.w900,
+                      color: const Color(0xFF00E5FF),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            // TIME — x=40.0%, y=69.9%
+            Positioned(
+              left: size.width * 0.400,
+              top: size.height * 0.684,
+              width: size.width * 0.30,
+              height: size.height * 0.030,
+              child: IgnorePointer(
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    _formatTime(timeSeconds),
+                    style: TextStyle(
+                      fontSize: size.height * 0.020,
+                      fontWeight: FontWeight.w900,
+                      color: const Color(0xFF00E5FF),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  void _navigate(BuildContext context, String target, String id) {
+  void _navigate(BuildContext context, String target) {
+    AudioService.play('button_click');
     switch (target) {
-      case 'levels':
-        context.go('/levels');
-      case 'hud':
-        context.go('/countdown');
+      case 'next-level':
+        context.go('/countdown?level=${levelId + 1}');
+      case 'retry':
+        context.go('/countdown?level=$levelId');
       case 'menu':
         context.go('/menu');
+      default:
+        break;
     }
   }
 }

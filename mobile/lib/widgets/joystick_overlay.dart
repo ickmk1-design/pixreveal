@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'dart:math' show sqrt;
 
 class JoystickOverlay extends StatefulWidget {
+  final Rect imgRect;
   final void Function(Offset direction)? onMove;
 
-  const JoystickOverlay({super.key, this.onMove});
+  const JoystickOverlay({super.key, required this.imgRect, this.onMove});
 
   @override
   State<JoystickOverlay> createState() => _JoystickOverlayState();
@@ -48,13 +49,13 @@ class _JoystickOverlayState extends State<JoystickOverlay> {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final joystickSize = size.width * 0.20;
+    final r = widget.imgRect;
+    final joystickSize = r.width * 0.20;
     final knobSize = joystickSize * 0.42;
 
     return Positioned(
-      left: size.width * 0.08,
-      bottom: size.height * 0.09,
+      left: r.left + r.width * 0.08,
+      top: r.top + r.height * (1.0 - 0.09) - joystickSize,
       width: joystickSize,
       height: joystickSize,
       child: GestureDetector(

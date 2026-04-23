@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class CountdownOverlay extends StatefulWidget {
+  final Rect imgRect;
   final VoidCallback onDone;
 
-  const CountdownOverlay({super.key, required this.onDone});
+  const CountdownOverlay({super.key, required this.imgRect, required this.onDone});
 
   @override
   State<CountdownOverlay> createState() => _CountdownOverlayState();
@@ -74,7 +75,9 @@ class _CountdownOverlayState extends State<CountdownOverlay>
             Shadow(color: Color(0xFF0088FF), blurRadius: 80),
           ];
 
-    return Positioned.fill(
+    final r = widget.imgRect;
+    return Positioned(
+      left: r.left, top: r.top, width: r.width, height: r.height,
       child: Container(
         decoration: const BoxDecoration(
           gradient: RadialGradient(

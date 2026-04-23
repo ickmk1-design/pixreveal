@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../widgets/mockup_screen.dart';
+import '../services/audio_service.dart';
 
 class MenuScreen extends StatelessWidget {
   const MenuScreen({super.key});
@@ -8,16 +9,19 @@ class MenuScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0E27),
-      body: MockupScreen(
-        screen: 'menu',
-        assetPath: 'assets/images/menu.png',
-        onNavigate: (target, id) => _navigate(context, target, id),
+      backgroundColor: const Color(0xFF050510),
+      body: SafeArea(
+        child: MockupScreen(
+          screen: 'menu',
+          assetPath: 'assets/images/menu.png',
+          onNavigate: (target, id) => _navigate(context, target),
+        ),
       ),
     );
   }
 
-  void _navigate(BuildContext context, String target, String id) {
+  void _navigate(BuildContext context, String target) {
+    AudioService.play('button_click');
     switch (target) {
       case 'categories':
         context.go('/categories');
@@ -25,6 +29,8 @@ class MenuScreen extends StatelessWidget {
         context.go('/shop');
       case 'settings':
         context.go('/settings');
+      default:
+        break;
     }
   }
 }
