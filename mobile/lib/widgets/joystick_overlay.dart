@@ -50,8 +50,8 @@ class _JoystickOverlayState extends State<JoystickOverlay> {
   @override
   Widget build(BuildContext context) {
     final r = widget.imgRect;
-    final joystickSize = r.width * 0.20;
-    final knobSize = joystickSize * 0.42;
+    final joystickSize = r.width * 0.28;
+    final knobSize = r.width * 0.12;
 
     return Positioned(
       left: r.left + r.width * 0.08,

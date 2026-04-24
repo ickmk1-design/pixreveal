@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../constants/hotspots.dart';
+import 'screen_frame.dart';
 
 class MockupScreen extends StatefulWidget {
   final String screen;
@@ -41,12 +42,10 @@ class _MockupScreenState extends State<MockupScreen> {
     if (widget.calibrateMode) {
       return Container(
         color: const Color(0xFF050510),
-        child: Center(
-          child: AspectRatio(
-            aspectRatio: 1024 / 1536,
-            child: LayoutBuilder(
-              builder: (context, c) {
-                return Stack(
+        child: ScreenFrame(
+          child: LayoutBuilder(
+            builder: (context, c) {
+              return Stack(
                   children: [
                     Positioned.fill(
                       child: Image.asset(widget.assetPath, fit: BoxFit.fill),
@@ -146,7 +145,6 @@ class _MockupScreenState extends State<MockupScreen> {
               },
             ),
           ),
-        ),
       );
     }
 
@@ -154,11 +152,9 @@ class _MockupScreenState extends State<MockupScreen> {
     final spots = kHotspots[widget.screen] ?? [];
     return Container(
       color: const Color(0xFF050510),
-      child: Center(
-        child: AspectRatio(
-          aspectRatio: 1024 / 1536,
-          child: LayoutBuilder(
-            builder: (context, c) {
+      child: ScreenFrame(
+        child: LayoutBuilder(
+          builder: (context, c) {
               final w = c.maxWidth;
               final h = c.maxHeight;
               return Stack(
@@ -221,7 +217,6 @@ class _MockupScreenState extends State<MockupScreen> {
             },
           ),
         ),
-      ),
     );
   }
 }
