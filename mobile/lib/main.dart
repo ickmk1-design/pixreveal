@@ -5,6 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'services/audio_service.dart';
+import 'services/purchase_service.dart';
+import 'services/token_service.dart';
+import 'services/entitlement_service.dart';
+import 'services/settings_service.dart';
 import 'app.dart';
 
 Future<void> _debugPngSizes() async {
@@ -30,6 +34,13 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  await PurchaseService.instance.configure();
+  await TokenService.instance.load();
+  EntitlementService.instance.init();
+  await EntitlementService.instance.refresh();
+
+  await SettingsService.instance.load();
 
   // Preload audio files so first play has no delay.
   await AudioService.instance.init();

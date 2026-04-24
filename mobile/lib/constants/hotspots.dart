@@ -82,13 +82,13 @@ const Map<String, List<Hotspot>> kHotspots = {
     Hotspot(id: 'theme-lock',  x: 22, y: 66, w: 20, h: 12, target: 'paywall', label: 'Kilit'),
   ],
 
-  // ─── PAYWALL (estimate — not tested) ──────────────────────────
+  // ─── PAYWALL (calibrated 2026-04-24) ──────────────────────────
   'paywall': [
-    Hotspot(id: 'close',      x: 76, y: 3,   w: 10, h: 5,  target: 'menu', label: 'X'),
-    Hotspot(id: 'monthly',    x: 14, y: 51,  w: 22, h: 14, target: 'none', label: 'AYLIK'),
-    Hotspot(id: 'yearly',     x: 56, y: 51,  w: 26, h: 14, target: 'none', label: 'YILLIK'),
-    Hotspot(id: 'restore',    x: 30, y: 63,  w: 36, h: 4,  target: 'none', label: 'Restore'),
-    Hotspot(id: 'subscribe',  x: 20, y: 70,  w: 60, h: 8,  target: 'menu', label: 'ABONE'),
+    Hotspot(id: 'close',     x: 87, y: 3,    w: 11, h: 5.5, target: 'close',     label: 'X'),
+    Hotspot(id: 'monthly',   x: 12, y: 49.5, w: 30, h: 10,  target: 'none',      label: 'AYLIK'),
+    Hotspot(id: 'yearly',    x: 52, y: 49.5, w: 30, h: 10,  target: 'none',      label: 'YILLIK'),
+    Hotspot(id: 'restore',   x: 36, y: 62.5, w: 28, h: 3,   target: 'none',      label: 'Restore'),
+    Hotspot(id: 'subscribe', x: 28, y: 69,   w: 44, h: 5.5, target: 'none',      label: 'ABONE'),
   ],
 
   // ─── SETTINGS ─────────────────────────────────────────────────
