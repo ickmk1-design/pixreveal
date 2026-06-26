@@ -27,15 +27,15 @@ class LevelCard extends StatelessWidget {
     final isLocked = state == LevelState.locked;
 
     final borderColor = isNext
-        ? const Color(0xFFFF006E)
+        ? const Color(0xFF00DDFF)
         : isDone
             ? const Color(0xFF00D4FF).withValues(alpha: 0.7)
             : const Color(0xFF6478B4).withValues(alpha: 0.3);
 
     final glow = isNext
         ? [
-            BoxShadow(color: const Color(0xFFFF006E).withValues(alpha: 0.5), blurRadius: 20),
-            BoxShadow(color: const Color(0xFFFF006E).withValues(alpha: 0.15), blurRadius: 20, spreadRadius: -5),
+            BoxShadow(color: const Color(0xFF00DDFF).withValues(alpha: 0.5), blurRadius: 20),
+            BoxShadow(color: const Color(0xFF00DDFF).withValues(alpha: 0.15), blurRadius: 20, spreadRadius: -5),
           ]
         : isDone
             ? [
@@ -115,12 +115,12 @@ class LevelCard extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      colors: [Color(0xFFFF4D9F), Color(0xFFFF006E)],
+                      colors: [Color(0xFF00AADD), Color(0xFFFF006E)],
                     ),
                     borderRadius: BorderRadius.circular(999),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFFFF006E).withValues(alpha: 0.6),
+                        color: const Color(0xFF00DDFF).withValues(alpha: 0.6),
                         blurRadius: 10,
                         offset: const Offset(0, 2),
                       ),

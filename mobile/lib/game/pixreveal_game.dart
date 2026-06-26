@@ -45,6 +45,8 @@ class PixRevealGame extends FlameGame with KeyboardEvents {
 
   // Power-ups
   final PowerUpManager powerUps = PowerUpManager();
+  // PNG sprites — yüklü değilse null → procedural fallback
+  final Map<PowerUpType, Image?> _puImages = {};
 
 
 
@@ -112,6 +114,20 @@ class PixRevealGame extends FlameGame with KeyboardEvents {
       GameGrid.gridCols,
       GameGrid.gridRows,
     );
+
+    // Power-up PNG sprites
+    for (final type in PowerUpType.values) {
+      final path = switch (type) {
+        PowerUpType.freeze => 'powerup_freeze.png',
+        PowerUpType.speed  => 'powerup_speed.png',
+        PowerUpType.shield => 'powerup_shield.png',
+      };
+      try {
+        _puImages[type] = await images.load(path);
+      } catch (_) {
+        _puImages[type] = null;
+      }
+    }
 
     gameState = PixGameState.playing;
   }
@@ -486,11 +502,22 @@ class PixRevealGame extends FlameGame with KeyboardEvents {
     canvas.drawCircle(Offset(cx, cy), radius, Paint()
       ..color = color..style = PaintingStyle.stroke..strokeWidth = 1.5);
 
-    // Draw icon based on type
-    switch (type) {
-      case PowerUpType.freeze: _drawSnowflake(canvas, cx, cy, radius * 0.7, color);
-      case PowerUpType.speed: _drawLightning(canvas, cx, cy, radius * 0.7, color);
-      case PowerUpType.shield: _drawShield(canvas, cx, cy, radius * 0.7, color);
+    // PNG sprite — tip eşlemesi: freeze/speed/shield (brush/bolt/bomb karışıklığı yok)
+    final img = _puImages[type];
+    if (img != null) {
+      final s = radius * 1.4;
+      canvas.drawImageRect(
+        img,
+        Rect.fromLTWH(0, 0, img.width.toDouble(), img.height.toDouble()),
+        Rect.fromCenter(center: Offset(cx, cy), width: s, height: s),
+        Paint(),
+      );
+    } else {
+      switch (type) {
+        case PowerUpType.freeze: _drawSnowflake(canvas, cx, cy, radius * 0.7, color);
+        case PowerUpType.speed: _drawLightning(canvas, cx, cy, radius * 0.7, color);
+        case PowerUpType.shield: _drawShield(canvas, cx, cy, radius * 0.7, color);
+      }
     }
   }
 

@@ -25,7 +25,7 @@ class _PlayArrowPainter extends CustomPainter {
       Offset(cx, cy),
       r + 3,
       Paint()
-        ..color = const Color(0xFFFF006E).withValues(alpha: 0.4)
+        ..color = const Color(0xFF00DDFF).withValues(alpha: 0.4)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6),
     );
 
@@ -35,7 +35,7 @@ class _PlayArrowPainter extends CustomPainter {
       ..shader = const LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
-        colors: [Color(0xFFFF4D9F), Color(0xFFFF006E)],
+        colors: [Color(0xFF00AADD), Color(0xFF00DDFF)],
       ).createShader(Rect.fromCircle(center: Offset(cx, cy), radius: r));
 
     canvas.drawCircle(Offset(cx, cy), r, circlePaint);

@@ -3,12 +3,14 @@ import 'package:go_router/go_router.dart';
 import '../widgets/mockup_screen.dart';
 import '../services/level_progress.dart';
 import '../services/audio_service.dart';
+import '../services/ad_service.dart';
 
 class VictoryScreen extends StatelessWidget {
   final int levelId;
   final int score;
   final int combo;
   final int timeSeconds;
+  final int tokensEarned;
 
   const VictoryScreen({
     super.key,
@@ -16,6 +18,7 @@ class VictoryScreen extends StatelessWidget {
     this.score = 0,
     this.combo = 1,
     this.timeSeconds = 0,
+    this.tokensEarned = 0,
   });
 
   String _formatTime(int secs) {
@@ -45,16 +48,17 @@ class VictoryScreen extends StatelessWidget {
         child: MockupScreen(
           screen: 'victory',
           assetPath: 'assets/images/victory.png',
+          calibrateMode: false,
           onNavigate: (target, id) => _navigate(context, target),
           overlayBuilder: (size) => [
             // Kategori resmi
             Positioned(
-              left: size.width * 0.21,
-              top: size.height * 0.305,
-              width: size.width * 0.54,
-              height: size.height * 0.245,
+              left: size.width * 0.253,
+              top: size.height * 0.314,
+              width: size.width * 0.470,
+              height: size.height * 0.234,
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(16),
                 child: Image.asset(
                   imageAsset,
                   fit: BoxFit.cover,
@@ -126,21 +130,44 @@ class VictoryScreen extends StatelessWidget {
                 ),
               ),
             ),
+
+            // TOKEN REWARD — sağ alt köşe, küçük yazı
+            if (tokensEarned > 0)
+              Positioned(
+                right: size.width * 0.05,
+                bottom: size.height * 0.12,
+                child: IgnorePointer(
+                  child: Text(
+                    '+$tokensEarned 🪙',
+                    style: TextStyle(
+                      fontSize: size.height * 0.018,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFFFFCC00),
+                      shadows: const [
+                        Shadow(color: Color(0xFFFFCC00), blurRadius: 8),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
           ],
         ),
       ),
     );
   }
 
-  void _navigate(BuildContext context, String target) {
+  Future<void> _navigate(BuildContext context, String target) async {
     AudioService.play('button_click');
     switch (target) {
       case 'next-level':
-        context.go('/countdown?level=${levelId + 1}');
+        // Interstitial göster, sonra geç (her 3 levelda bir)
+        await AdService.instance.onLevelCompleted();
+        if (context.mounted) context.go('/countdown?level=${levelId + 1}');
       case 'retry':
         context.go('/countdown?level=$levelId');
       case 'menu':
-        context.go('/menu');
+        await AdService.instance.onLevelCompleted();
+        if (context.mounted) context.go('/menu');
       default:
         break;
     }

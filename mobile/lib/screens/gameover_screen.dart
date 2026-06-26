@@ -1,11 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/mockup_screen.dart';
 import '../services/audio_service.dart';
+import '../services/lives_service.dart';
+import '../services/ad_service.dart';
+import '../services/token_service.dart';
 
-class GameoverScreen extends StatelessWidget {
+class GameoverScreen extends StatefulWidget {
   final int levelId;
   const GameoverScreen({super.key, this.levelId = 1});
+
+  @override
+  State<GameoverScreen> createState() => _GameoverScreenState();
+}
+
+class _GameoverScreenState extends State<GameoverScreen> {
+  bool _reviveUsed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    LivesService.instance.deductLife();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,13 +47,100 @@ class GameoverScreen extends StatelessWidget {
     AudioService.play('button_click');
     switch (target) {
       case 'retry':
-        // Use token / Watch ad → both retry for now (real IAP/ad hook later)
-        if (id == 'use-token') AudioService.play('token_insert');
-        context.go('/countdown?level=$levelId');
+        if (id == 'watch-ad') {
+          _handleRevive();
+        } else if (id == 'use-token') {
+          if (TokenService.instance.balance >= 5) {
+            AudioService.play('token_insert');
+            TokenService.instance.spendToken(5); // fire-and-forget
+            LivesService.instance.addLife();     // fire-and-forget
+            context.go('/countdown?level=${widget.levelId}');
+          } else {
+            _snack('Yeterli token yok (5 gerekli). Reklam izle veya token satın al.');
+          }
+        } else {
+          context.go('/countdown?level=${widget.levelId}');
+        }
       case 'menu':
         context.go('/menu');
       default:
         break;
     }
+  }
+
+  static const int _dailyAdLimit = 3;
+  static const String _kAdCount = 'ad_continues_today';
+  static const String _kAdDate  = 'ad_continue_date';
+
+  Future<bool> _checkDailyAdLimit() async {
+    final prefs = await SharedPreferences.getInstance();
+    final today = DateTime.now();
+    final dateStr = '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
+    final savedDate = prefs.getString(_kAdDate) ?? '';
+
+    // Gün değişmişse sayacı sıfırla
+    if (savedDate != dateStr) {
+      await prefs.setInt(_kAdCount, 0);
+      await prefs.setString(_kAdDate, dateStr);
+    }
+
+    final count = prefs.getInt(_kAdCount) ?? 0;
+    if (count >= _dailyAdLimit) return false; // limit doldu
+
+    await prefs.setInt(_kAdCount, count + 1);
+    return true;
+  }
+
+  void _handleRevive() {
+    // VIP: ücretsiz devam
+    if (LivesService.instance.isVip) {
+      LivesService.instance.addLife();
+      context.go('/countdown?level=${widget.levelId}');
+      return;
+    }
+
+    if (_reviveUsed) {
+      _snack('Bu level için revive hakkını kullandın');
+      return;
+    }
+
+    if (!AdService.instance.isRewardedReady) {
+      _snack('Reklam henüz hazırlanıyor, lütfen birkaç saniye bekle.');
+      return;
+    }
+
+    _checkDailyAdLimit().then((allowed) {
+      if (!allowed) {
+        _snack('Günlük limit doldu (3/3). Yarın tekrar dene.');
+        return;
+      }
+      AdService.instance.showRewarded(
+        onEarned: () {
+          _reviveUsed = true;
+          LivesService.instance.addLife();
+          if (mounted) context.go('/countdown?level=${widget.levelId}');
+        },
+        onNotReady: () {
+          if (mounted) _snack('Reklam henüz hazırlanıyor, lütfen birkaç saniye bekle.');
+        },
+      );
+    });
+  }
+
+  void _snack(String msg) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(msg,
+          textAlign: TextAlign.center,
+          style: const TextStyle(color: Colors.white, fontSize: 13)),
+      duration: const Duration(milliseconds: 2500),
+      backgroundColor: const Color(0xFF1A0F2E),
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: const BorderSide(color: Color(0xFF00D4FF), width: 1),
+      ),
+      margin: const EdgeInsets.only(bottom: 100, left: 60, right: 60),
+    ));
   }
 }

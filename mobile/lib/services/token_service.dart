@@ -14,7 +14,15 @@ class TokenService {
 
   Future<void> load() async {
     final prefs = await SharedPreferences.getInstance();
-    _balance = prefs.getInt(_key) ?? 0;
+    // İlk kez mi? → 100 başlangıç token'ı ver
+    final initialized = prefs.getBool('token_initialized') ?? false;
+    if (!initialized) {
+      _balance = 100;
+      await prefs.setInt(_key, _balance);
+      await prefs.setBool('token_initialized', true);
+    } else {
+      _balance = prefs.getInt(_key) ?? 0;
+    }
     _notifier.value = _balance;
   }
 

@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../widgets/level_card.dart';
 import '../services/level_progress.dart';
+import '../services/lives_service.dart';
+import '../services/ad_service.dart';
 
 class LevelsScreen extends StatefulWidget {
   const LevelsScreen({super.key});
@@ -162,6 +164,102 @@ class _LevelsScreenState extends State<LevelsScreen> {
       context.go('/paywall');
       return;
     }
+    final ls = LivesService.instance;
+    if (!ls.hasLives) {
+      _showNoLivesDialog();
+      return;
+    }
     context.go('/countdown?level=$n');
+  }
+
+  void _showNoLivesDialog() {
+    final ls = LivesService.instance;
+    final regenStr = ls.nextRegenFormatted();
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF0A0E27),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: Color(0xFF00D4FF), width: 1.5),
+        ),
+        title: const Text(
+          'CAN YOK',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: Color(0xFF00D4FF),
+            fontFamily: 'PressStart2P',
+            fontSize: 14,
+          ),
+        ),
+        content: Text(
+          'Sonraki can: $regenStr',
+          textAlign: TextAlign.center,
+          style: const TextStyle(color: Colors.white70, fontSize: 13),
+        ),
+        actionsAlignment: MainAxisAlignment.center,
+        actions: [
+          // Reklam izle → +1 can
+          _dialogBtn(
+            label: 'REKLAM İZLE  (+1 CAN)',
+            color: const Color(0xFF00D4FF),
+            onTap: () async {
+              Navigator.of(ctx).pop();
+              await AdService.instance.showRewarded(onEarned: () async {
+                await LivesService.instance.addLife();
+                if (mounted) setState(() {});
+              });
+            },
+          ),
+          const SizedBox(height: 8),
+          // Bekle
+          _dialogBtn(
+            label: 'BEKLE',
+            color: const Color(0xFF555577),
+            onTap: () => Navigator.of(ctx).pop(),
+          ),
+          const SizedBox(height: 8),
+          // VIP ol
+          _dialogBtn(
+            label: 'VIP OL → SINIRSIIZ CAN',
+            color: const Color(0xFFFF006E),
+            onTap: () {
+              Navigator.of(ctx).pop();
+              context.go('/paywall');
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _dialogBtn({
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: color, width: 1.5),
+          color: color.withValues(alpha: 0.15),
+        ),
+        child: Text(
+          label,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: color,
+            fontSize: 11,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1,
+          ),
+        ),
+      ),
+    );
   }
 }

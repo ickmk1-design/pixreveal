@@ -30,7 +30,27 @@ class Hud extends Component {
   Color _puColor = const Color(0xFFFFFFFF);
   double _puTimer = 0;
 
+  // PNG sprites — Cowork tarafından eklenen assets/images/powerup_*.png dosyaları.
+  // Dosya yoksa null kalır → procedural fallback çizilir.
+  final Map<PowerUpType, Sprite?> _puSprites = {};
+
   Hud({required this.gameWidth});
+
+  @override
+  Future<void> onLoad() async {
+    for (final type in PowerUpType.values) {
+      final path = switch (type) {
+        PowerUpType.freeze => 'powerup_freeze.png',
+        PowerUpType.speed  => 'powerup_speed.png',
+        PowerUpType.shield => 'powerup_shield.png',
+      };
+      try {
+        _puSprites[type] = await Sprite.load(path);
+      } catch (_) {
+        _puSprites[type] = null;
+      }
+    }
+  }
 
   void showPopup(String text) {
     _popup = text;
@@ -208,26 +228,34 @@ class Hud extends Component {
     canvas.drawCircle(Offset(x, y), 13, Paint()
       ..color = col..style = PaintingStyle.stroke..strokeWidth = 1.5);
 
-    // Mini icon
-    switch (ap.type) {
-      case PowerUpType.freeze:
-        for (int i = 0; i < 6; i++) {
-          final a = i * pi / 3;
-          canvas.drawLine(Offset(x, y), Offset(x + cos(a) * 7, y + sin(a) * 7),
-            Paint()..color = col..strokeWidth = 1.4..strokeCap = StrokeCap.round);
-        }
-      case PowerUpType.speed:
-        final p = Path()
-          ..moveTo(x - 2, y - 6)..lineTo(x + 3, y - 1)
-          ..lineTo(x - 1, y - 1)..lineTo(x + 2, y + 6)
-          ..lineTo(x - 3, y + 1)..lineTo(x + 1, y + 1)..close();
-        canvas.drawPath(p, Paint()..color = col);
-      case PowerUpType.shield:
-        final p = Path()
-          ..moveTo(x, y - 7)..lineTo(x + 6, y - 4)
-          ..lineTo(x + 6, y + 2)..lineTo(x, y + 7)
-          ..lineTo(x - 6, y + 2)..lineTo(x - 6, y - 4)..close();
-        canvas.drawPath(p, Paint()..color = col..style = PaintingStyle.stroke..strokeWidth = 1.8);
+    // Mini icon — PNG sprite if loaded, else procedural fallback
+    final sprite = _puSprites[ap.type];
+    if (sprite != null) {
+      sprite.render(canvas,
+        position: Vector2(x - 9, y - 9),
+        size: Vector2(18, 18),
+      );
+    } else {
+      switch (ap.type) {
+        case PowerUpType.freeze:
+          for (int i = 0; i < 6; i++) {
+            final a = i * pi / 3;
+            canvas.drawLine(Offset(x, y), Offset(x + cos(a) * 7, y + sin(a) * 7),
+              Paint()..color = col..strokeWidth = 1.4..strokeCap = StrokeCap.round);
+          }
+        case PowerUpType.speed:
+          final p = Path()
+            ..moveTo(x - 2, y - 6)..lineTo(x + 3, y - 1)
+            ..lineTo(x - 1, y - 1)..lineTo(x + 2, y + 6)
+            ..lineTo(x - 3, y + 1)..lineTo(x + 1, y + 1)..close();
+          canvas.drawPath(p, Paint()..color = col);
+        case PowerUpType.shield:
+          final p = Path()
+            ..moveTo(x, y - 7)..lineTo(x + 6, y - 4)
+            ..lineTo(x + 6, y + 2)..lineTo(x, y + 7)
+            ..lineTo(x - 6, y + 2)..lineTo(x - 6, y - 4)..close();
+          canvas.drawPath(p, Paint()..color = col..style = PaintingStyle.stroke..strokeWidth = 1.8);
+      }
     }
 
     // Progress bar under icon

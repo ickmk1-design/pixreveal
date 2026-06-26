@@ -9,6 +9,8 @@ import 'services/purchase_service.dart';
 import 'services/token_service.dart';
 import 'services/entitlement_service.dart';
 import 'services/settings_service.dart';
+import 'services/lives_service.dart';
+import 'services/ad_service.dart';
 import 'app.dart';
 
 Future<void> _debugPngSizes() async {
@@ -41,6 +43,8 @@ void main() async {
   await EntitlementService.instance.refresh();
 
   await SettingsService.instance.load();
+  await LivesService.instance.load();
+  await AdService.instance.initialize();
 
   // Preload audio files so first play has no delay.
   await AudioService.instance.init();

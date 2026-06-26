@@ -103,7 +103,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
     setState(() => _loading = false);
 
     if (result.success) {
-      _snack('Premium aktif! Tüm kategoriler açıldı');
+      _snack('VIP aktif! Reklamsız, sınırsız can ve tüm power-up\'lar açıldı');
       await Future.delayed(const Duration(milliseconds: 800));
       if (mounted) {
         if (context.canPop()) { context.pop(); } else { context.go('/categories'); }

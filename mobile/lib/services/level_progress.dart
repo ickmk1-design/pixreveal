@@ -42,53 +42,45 @@ class LevelProgress {
   }
 }
 
-/// Category definitions — matches what's in categories.png visually.
-/// Free: cars, space, animals (first 3)
-/// Premium: beach, fitness (last 2)
-/// Custom: own image (premium)
+/// Category definitions — all categories free (free-to-play model).
+/// VIP entitlement = reklamsız + sınırsız can + tüm power-up açık (kategori kilidi YOK).
 enum GameCategory {
-  cars,      // SÜPER ARABALAR — free
-  space,     // DERİN UZAY — free
-  animals,   // VAHŞİ HAYVANLAR — free
-  beach,     // PLAJ GLAMOUR — premium
-  fitness,   // FITNESS — premium
-  ownImage,  // KENDİ FOTOĞRAFIN — premium
+  cars,      // SÜPER ARABALAR
+  space,     // DERİN UZAY
+  animals,   // VAHŞİ HAYVANLAR
+  beach,     // SAHİL
+  fitness,   // FITNESS
+  ownImage,  // KENDİ FOTOĞRAFIN
+  fantasy,   // FANTASTİK
 }
 
 extension GameCategoryX on GameCategory {
-  bool get isPremium {
-    switch (this) {
-      case GameCategory.cars:
-      case GameCategory.space:
-      case GameCategory.animals:
-        return false;
-      case GameCategory.beach:
-      case GameCategory.fitness:
-      case GameCategory.ownImage:
-        return true;
-    }
-  }
+  // isPremium artık kategori kilidi için kullanılmıyor.
+  // VIP perks (reklamsız/can/power-up) EntitlementService.isPremium ile kontrol edilir.
+  bool get isPremium => false;
 
   String get displayName {
     switch (this) {
-      case GameCategory.cars: return 'SÜPER ARABALAR';
-      case GameCategory.space: return 'DERİN UZAY';
-      case GameCategory.animals: return 'VAHŞİ HAYVANLAR';
-      case GameCategory.beach: return 'PLAJ GLAMOUR';
-      case GameCategory.fitness: return 'FITNESS';
+      case GameCategory.cars:     return 'SÜPER ARABALAR';
+      case GameCategory.space:    return 'DERİN UZAY';
+      case GameCategory.animals:  return 'VAHŞİ HAYVANLAR';
+      case GameCategory.beach:    return 'SAHİL';
+      case GameCategory.fitness:  return 'FITNESS';
       case GameCategory.ownImage: return 'KENDİ FOTOĞRAFIN';
+      case GameCategory.fantasy:  return 'FANTASTİK';
     }
   }
 
-  /// Category key used to build level image asset paths
+  /// Category key used to build level image asset paths: {assetKey}_{levelId}.jpg
   String get assetKey {
     switch (this) {
-      case GameCategory.cars: return 'cars';
-      case GameCategory.space: return 'space';
-      case GameCategory.animals: return 'animal';
-      case GameCategory.beach: return 'glamour';
-      case GameCategory.fitness: return 'fitness';
+      case GameCategory.cars:     return 'cars';
+      case GameCategory.space:    return 'space';
+      case GameCategory.animals:  return 'animal';
+      case GameCategory.beach:    return 'glamour'; // dosya adları glamour_N.jpg — değiştirilmedi
+      case GameCategory.fitness:  return 'fitness';
       case GameCategory.ownImage: return 'custom';
+      case GameCategory.fantasy:  return 'fantasy';
     }
   }
 }

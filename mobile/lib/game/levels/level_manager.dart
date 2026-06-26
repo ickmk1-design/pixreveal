@@ -92,6 +92,15 @@ class LevelManager {
       enemyTypes: ['spider'],
       enemySpeedMultiplier: 1.2,
     ),
+    const LevelConfig(
+      id: 12,
+      worldId: 1,
+      name: 'Nightmare',
+      enemyCount: 4,
+      enemyTypes: ['spider'],
+      enemySpeedMultiplier: 1.3,
+      isBoss: true,
+    ),
   ];
 
   static LevelConfig getLevel(int id) {

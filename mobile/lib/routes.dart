@@ -34,10 +34,11 @@ final appRouter = GoRouter(
       builder: (_, state) {
         final p = state.uri.queryParameters;
         return VictoryScreen(
-          levelId:     int.tryParse(p['level'] ?? '1') ?? 1,
-          score:       int.tryParse(p['score']  ?? '0') ?? 0,
-          combo:       int.tryParse(p['combo']  ?? '1') ?? 1,
-          timeSeconds: int.tryParse(p['time']   ?? '0') ?? 0,
+          levelId:      int.tryParse(p['level']  ?? '1') ?? 1,
+          score:        int.tryParse(p['score']   ?? '0') ?? 0,
+          combo:        int.tryParse(p['combo']   ?? '1') ?? 1,
+          timeSeconds:  int.tryParse(p['time']    ?? '0') ?? 0,
+          tokensEarned: int.tryParse(p['tokens']  ?? '0') ?? 0,
         );
       },
     ),

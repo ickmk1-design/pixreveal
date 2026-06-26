@@ -18,8 +18,8 @@ class GameConstants {
   // Colors - Neon Arcade
   static const Color borderColor = Color(0xFF00FFFF);
   static const Color borderGlowColor = Color(0x6600FFFF);
-  static const Color trailColor = Color(0xFFFF00FF);
-  static const Color trailGlowColor = Color(0x66FF00FF);
+  static const Color trailColor = Color(0xFF00DDFF);
+  static const Color trailGlowColor = Color(0x6600DDFF);
   static const Color playerColor = Color(0xFF00FF88);
   static const Color playerGlowColor = Color(0x6600FF88);
   static const Color capturedFlashColor = Color(0xAAFFFFFF);
