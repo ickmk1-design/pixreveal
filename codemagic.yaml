@@ -22,21 +22,48 @@ workflows:
         - pattern: main
           include: true
     scripts:
-      - name: Fetch signing files
+      - name: Fetch signing files (verbose debug)
         script: |
+          echo "=== Bundle IDs ==="
+          app-store-connect bundle-ids list \
+            --bundle-id-identifier com.cytbilisim.pixreveal || true
+
+          echo "=== Distribution Certificates ==="
+          app-store-connect certificates list \
+            --certificate-type DISTRIBUTION || true
+
+          echo "=== Existing Profiles ==="
+          app-store-connect profiles list \
+            --bundle-id-identifier com.cytbilisim.pixreveal || true
+
+          echo "=== Fetch + Create ==="
           app-store-connect fetch-signing-files com.cytbilisim.pixreveal \
             --type IOS_APP_STORE \
-            --create
+            --create \
+            --verbose
 
-      - name: Set up keychain and certificates
-        script: |
+          echo "=== Downloaded profiles ==="
+          ls -la "$HOME/Library/MobileDevice/Provisioning Profiles/" || echo "PROFILE KLASORU YOK"
+
+          echo "=== Keychain certs ==="
           keychain initialize
           keychain add-certificates
+          keychain list-certificates || true
 
       - name: Set up code signing settings
         script: |
           cd mobile
-          xcode-project use-profiles
+          xcode-project use-profiles --verbose
+
+      - name: Inspect Xcode signing config
+        script: |
+          cd mobile/ios
+          echo "=== Runner signing settings ==="
+          grep -A2 "CODE_SIGN" Runner.xcodeproj/project.pbxproj | head -40
+          echo "=== DEVELOPMENT_TEAM ==="
+          grep "DEVELOPMENT_TEAM" Runner.xcodeproj/project.pbxproj | head -10
+          echo "=== PROVISIONING ==="
+          grep "PROVISIONING_PROFILE" Runner.xcodeproj/project.pbxproj | head -10
 
       - name: Get Flutter packages
         script: |
