@@ -58,16 +58,14 @@ workflows:
       - name: Build IPA
         script: |
           cd mobile
-          flutter build ipa --release \
-            --export-options-plist=ios/ExportOptions.plist \
-            --verbose 2>&1 | tee /tmp/flutter_build.log; \
-          BUILD_EXIT=${PIPESTATUS[0]}; \
-          if [ $BUILD_EXIT -ne 0 ]; then \
-            echo "=== LAST 200 LINES OF BUILD LOG ==="; \
-            tail -200 /tmp/flutter_build.log; \
-            echo "=== XCODEBUILD LOGS ==="; \
-            find /tmp/xcodebuild_logs -name "*.log" 2>/dev/null | head -3 | xargs tail -100 2>/dev/null || true; \
-          fi; \
+          flutter build ipa --release 2>&1 | tee /tmp/flutter_build.log
+          BUILD_EXIT=${PIPESTATUS[0]}
+          if [ $BUILD_EXIT -ne 0 ]; then
+            echo "=== BUILD FAILED — LAST 300 LINES ==="
+            tail -300 /tmp/flutter_build.log
+            echo "=== XCODEBUILD LOG ==="
+            find /tmp/xcodebuild_logs -name "*.log" 2>/dev/null | head -1 | xargs tail -150 2>/dev/null || true
+          fi
           exit $BUILD_EXIT
 
     artifacts:
