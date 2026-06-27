@@ -6,11 +6,9 @@ workflows:
     integrations:
       app_store_connect: app_store_credentials
     environment:
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: com.cytbilisim.pixreveal
       vars:
         APP_STORE_APP_ID: 6784971749
+        BUNDLE_ID: com.cytbilisim.pixreveal
       flutter: stable
       xcode: latest
       cocoapods: default
@@ -21,6 +19,16 @@ workflows:
         - pattern: main
           include: true
     scripts:
+      - name: Set up keychain
+        script: keychain initialize
+      - name: Fetch signing files
+        script: |
+          app-store-connect fetch-signing-files "$BUNDLE_ID" \
+            --type IOS_APP_STORE \
+            --create
+          keychain add-certificates
+      - name: Set up code signing
+        script: xcode-project use-profiles
       - name: Get Flutter packages
         script: |
           cd mobile
@@ -37,7 +45,7 @@ workflows:
       - name: Build IPA
         script: |
           cd mobile
-          flutter build ipa --release --export-options-plist=/Users/builder/export_options.plist
+          flutter build ipa --release
     artifacts:
       - mobile/build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
