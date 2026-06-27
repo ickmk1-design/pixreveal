@@ -39,7 +39,7 @@ workflows:
       - name: Pod install
         script: |
           cd mobile/ios
-          pod install
+          pod install --repo-update 2>&1
       - name: Set build number
         script: |
           LATEST_BUILD_NUMBER=$(app-store-connect get-latest-app-store-build-number "$APP_STORE_APP_ID")
