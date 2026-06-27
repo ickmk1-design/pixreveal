@@ -40,19 +40,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 },
                 onNavigate: (target, id) => _navigate(target, id),
                 overlayBuilder: (size) => [
-                  if (!sfx) _toggleOffOverlay(size, yPercent: 24.4),
-                  if (!music) _toggleOffOverlay(size, yPercent: 30.3),
-                  if (!vibration) _toggleOffOverlay(size, yPercent: 35.8),
-                  // ACCOUNT section (LINK ACCOUNT) — v1.0 hesapsız, PNG üzeri kapatıldı
-                  Positioned(
-                    left: 0,
-                    top: size.height * 0.375,
-                    width: size.width,
-                    height: size.height * 0.225,
-                    child: const IgnorePointer(
-                      child: ColoredBox(color: Color(0xFF050510)),
-                    ),
-                  ),
+                  if (!sfx) _toggleOffOverlay(size, yPercent: 30.8),
+                  if (!music) _toggleOffOverlay(size, yPercent: 38.4),
+                  if (!vibration) _toggleOffOverlay(size, yPercent: 45.2),
                 ],
               ),
             ),

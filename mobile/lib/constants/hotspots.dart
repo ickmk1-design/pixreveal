@@ -91,13 +91,15 @@ const Map<String, List<Hotspot>> kHotspots = {
   // restore: y=66.85
   // privacy: y=78.9
   // terms: y=84.25
+  // ─── SETTINGS (calibrated 2026-06-27) ────────────────────────
+  // sfx y=30.8, music y=38.4, vibe y=45.2, restore y=60.4, privacy y=76.3, terms y=83.4
   'settings': [
-    Hotspot(id: 'sfx',       x: 68, y: 21, w: 28, h: 7, target: 'toggle-sfx',       label: 'SFX'),
-    Hotspot(id: 'music',     x: 68, y: 27, w: 28, h: 7, target: 'toggle-music',     label: 'Music'),
-    Hotspot(id: 'vibe',      x: 68, y: 33, w: 28, h: 7, target: 'toggle-vibration', label: 'Vibe'),
-    Hotspot(id: 'restore',   x: 14, y: 63, w: 72, h: 8, target: 'none',             label: 'Restore'),
-    Hotspot(id: 'privacy',   x: 4,  y: 75, w: 92, h: 8, target: 'none',             label: 'Privacy'),
-    Hotspot(id: 'terms',     x: 4,  y: 80, w: 92, h: 8, target: 'none',             label: 'Terms'),
+    Hotspot(id: 'sfx',     x: 65, y: 27.3, w: 28, h: 7, target: 'toggle-sfx',       label: 'SFX'),
+    Hotspot(id: 'music',   x: 65, y: 34.9, w: 28, h: 7, target: 'toggle-music',     label: 'Music'),
+    Hotspot(id: 'vibe',    x: 62, y: 41.7, w: 28, h: 7, target: 'toggle-vibration', label: 'Vibe'),
+    Hotspot(id: 'restore', x: 10, y: 56.4, w: 72, h: 8, target: 'none',             label: 'Restore'),
+    Hotspot(id: 'privacy', x: 4,  y: 72.3, w: 92, h: 8, target: 'none',             label: 'Privacy'),
+    Hotspot(id: 'terms',   x: 4,  y: 79.4, w: 92, h: 8, target: 'none',             label: 'Terms'),
   ],
 
   'countdown': [],
