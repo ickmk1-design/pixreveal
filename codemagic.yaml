@@ -24,37 +24,48 @@ workflows:
       - name: Set up keychain
         script: |
           keychain initialize
-          echo $CM_CERTIFICATE | base64 --decode > /tmp/dist_cert.p12
+          echo $CM_CERTIFICATE | base64 -D > /tmp/dist_cert.p12
           keychain add-certificates --certificate /tmp/dist_cert.p12 --certificate-password "$CM_CERTIFICATE_PASSWORD"
+
       - name: Set up provisioning profile
         script: |
-          PROFILE_PATH="$HOME/Library/MobileDevice/Provisioning Profiles/profile.mobileprovision"
-          mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
-          echo $CM_PROVISIONING_PROFILE | base64 --decode > "$PROFILE_PATH"
+          PROFILES_DIR="$HOME/Library/MobileDevice/Provisioning Profiles"
+          mkdir -p "$PROFILES_DIR"
+          echo $CM_PROVISIONING_PROFILE | base64 -D > "$PROFILES_DIR/PixReveal.mobileprovision"
           xcode-project use-profiles
+
       - name: Get Flutter packages
         script: |
           cd mobile
           flutter config --no-enable-swift-package-manager
-          flutter packages pub get
-      - name: Pod install
+          flutter pub get
+
+      - name: Generate iOS config
         script: |
           cd mobile
-          flutter build ios --config-only --no-codesign || true
-          cd ios
-          pod install --repo-update 2>&1
+          flutter build ios --config-only
+
+      - name: Pod install
+        script: |
+          cd mobile/ios
+          pod install --repo-update
+
       - name: Set build number
         script: |
           LATEST_BUILD_NUMBER=$(app-store-connect get-latest-app-store-build-number "$APP_STORE_APP_ID")
           cd mobile/ios
           agvtool new-version -all $(($LATEST_BUILD_NUMBER + 1))
+
       - name: Build IPA
         script: |
           cd mobile
-          flutter build ipa --release
+          flutter build ipa --release \
+            --export-options-plist=ios/ExportOptions.plist
+
     artifacts:
       - mobile/build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
+
     publishing:
       email:
         recipients:
