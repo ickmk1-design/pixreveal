@@ -6,11 +6,11 @@ workflows:
     integrations:
       app_store_connect: app_store_credentials
     environment:
-      groups:
-        - signing
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.cytbilisim.pixreveal
       vars:
         APP_STORE_APP_ID: 6784971749
-        BUNDLE_ID: com.cytbilisim.pixreveal
       flutter: stable
       xcode: 16.2
       cocoapods: default
@@ -21,24 +21,27 @@ workflows:
         - pattern: main
           include: true
     scripts:
-      - name: Set up keychain
+      - name: Fetch signing files
+        script: |
+          app-store-connect fetch-signing-files com.cytbilisim.pixreveal \
+            --type IOS_APP_STORE \
+            --create
+
+      - name: Set up keychain and certificates
         script: |
           keychain initialize
-          echo $CM_CERTIFICATE | base64 -D > /tmp/dist_cert.p12
-          keychain add-certificates --certificate /tmp/dist_cert.p12 --certificate-password "$CM_CERTIFICATE_PASSWORD"
-
-      - name: Set up provisioning profile
-        script: |
-          PROFILES_DIR="$HOME/Library/MobileDevice/Provisioning Profiles"
-          mkdir -p "$PROFILES_DIR"
-          echo $CM_PROVISIONING_PROFILE | base64 -D > "$PROFILES_DIR/PixReveal.mobileprovision"
-          xcode-project use-profiles
+          keychain add-certificates
 
       - name: Get Flutter packages
         script: |
           cd mobile
           flutter config --no-enable-swift-package-manager
           flutter pub get
+
+      - name: Set up code signing
+        script: |
+          cd mobile
+          xcode-project use-profiles
 
       - name: Generate iOS config
         script: |
@@ -50,6 +53,11 @@ workflows:
           cd mobile/ios
           pod install --repo-update
 
+      - name: Set up code signing (after pods)
+        script: |
+          cd mobile
+          xcode-project use-profiles
+
       - name: Set build number
         script: |
           LATEST_BUILD_NUMBER=$(app-store-connect get-latest-app-store-build-number "$APP_STORE_APP_ID")
@@ -60,7 +68,7 @@ workflows:
         script: |
           cd mobile
           flutter build ipa --release \
-            --export-options-plist=ios/ExportOptions.plist
+            --export-options-plist=/Users/builder/export_options.plist
 
     artifacts:
       - mobile/build/ios/ipa/*.ipa
