@@ -59,11 +59,21 @@ workflows:
         script: |
           cd mobile
           flutter build ipa --release \
-            --export-options-plist=ios/ExportOptions.plist
+            --export-options-plist=ios/ExportOptions.plist \
+            --verbose 2>&1 | tee /tmp/flutter_build.log; \
+          BUILD_EXIT=${PIPESTATUS[0]}; \
+          if [ $BUILD_EXIT -ne 0 ]; then \
+            echo "=== LAST 200 LINES OF BUILD LOG ==="; \
+            tail -200 /tmp/flutter_build.log; \
+            echo "=== XCODEBUILD LOGS ==="; \
+            find /tmp/xcodebuild_logs -name "*.log" 2>/dev/null | head -3 | xargs tail -100 2>/dev/null || true; \
+          fi; \
+          exit $BUILD_EXIT
 
     artifacts:
       - mobile/build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
+      - /tmp/flutter_build.log
 
     publishing:
       email:
