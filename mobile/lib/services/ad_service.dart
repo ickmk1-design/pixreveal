@@ -10,14 +10,13 @@ import '../constants/economy_config.dart';
 class AdConfig {
   AdConfig._();
 
-  // TODO: PixReveal prod AdMob ID — replace with real unit IDs from AdMob Console
   static final String rewardedId = Platform.isAndroid
-      ? 'ca-app-pub-3940256099942544/5224354917'   // TODO: PixReveal prod Android rewarded ID
-      : 'ca-app-pub-3940256099942544/1712485313';  // TODO: PixReveal prod iOS rewarded ID
+      ? 'ca-app-pub-2172235968793446/7553607834'
+      : 'ca-app-pub-2172235968793446/9800497221';
 
   static final String interstitialId = Platform.isAndroid
-      ? 'ca-app-pub-3940256099942544/1033173712'   // TODO: PixReveal prod Android interstitial ID
-      : 'ca-app-pub-3940256099942544/4411468910';  // TODO: PixReveal prod iOS interstitial ID
+      ? 'ca-app-pub-2172235968793446/6154107707'
+      : 'ca-app-pub-2172235968793446/8932314285';
 }
 
 // ─── Ad Service ────────────────────────────────────────────────
