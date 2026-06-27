@@ -59,7 +59,7 @@ workflows:
         distribution_type: app_store
         bundle_identifier: com.cytbilisim.pixreveal
       vars:
-        APP_STORE_APP_ID: 1234567890
+        APP_STORE_APP_ID: 6784971749
       flutter: stable
       xcode: latest
       cocoapods: default
