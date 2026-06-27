@@ -6,9 +6,8 @@ workflows:
     integrations:
       app_store_connect: app_store_credentials
     environment:
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: com.cytbilisim.pixreveal
+      groups:
+        - signing
       vars:
         APP_STORE_APP_ID: 6784971749
         BUNDLE_ID: com.cytbilisim.pixreveal
@@ -22,48 +21,18 @@ workflows:
         - pattern: main
           include: true
     scripts:
-      - name: Fetch signing files (verbose debug)
+      - name: Set up keychain
         script: |
-          echo "=== Bundle IDs ==="
-          app-store-connect bundle-ids list \
-            --bundle-id-identifier com.cytbilisim.pixreveal || true
-
-          echo "=== Distribution Certificates ==="
-          app-store-connect certificates list \
-            --certificate-type DISTRIBUTION || true
-
-          echo "=== Existing Profiles ==="
-          app-store-connect profiles list \
-            --bundle-id-identifier com.cytbilisim.pixreveal || true
-
-          echo "=== Fetch + Create ==="
-          app-store-connect fetch-signing-files com.cytbilisim.pixreveal \
-            --type IOS_APP_STORE \
-            --create \
-            --verbose
-
-          echo "=== Downloaded profiles ==="
-          ls -la "$HOME/Library/MobileDevice/Provisioning Profiles/" || echo "PROFILE KLASORU YOK"
-
-          echo "=== Keychain certs ==="
           keychain initialize
-          keychain add-certificates
-          keychain list-certificates || true
+          echo $CM_CERTIFICATE | base64 -D > /tmp/dist_cert.p12
+          keychain add-certificates --certificate /tmp/dist_cert.p12 --certificate-password "$CM_CERTIFICATE_PASSWORD"
 
-      - name: Set up code signing settings
+      - name: Set up provisioning profile
         script: |
-          cd mobile
-          xcode-project use-profiles --verbose
-
-      - name: Inspect Xcode signing config
-        script: |
-          cd mobile/ios
-          echo "=== Runner signing settings ==="
-          grep -A2 "CODE_SIGN" Runner.xcodeproj/project.pbxproj | head -40
-          echo "=== DEVELOPMENT_TEAM ==="
-          grep "DEVELOPMENT_TEAM" Runner.xcodeproj/project.pbxproj | head -10
-          echo "=== PROVISIONING ==="
-          grep "PROVISIONING_PROFILE" Runner.xcodeproj/project.pbxproj | head -10
+          PROFILES_DIR="$HOME/Library/MobileDevice/Provisioning Profiles"
+          mkdir -p "$PROFILES_DIR"
+          echo $CM_PROVISIONING_PROFILE | base64 -D > "$PROFILES_DIR/PixReveal.mobileprovision"
+          xcode-project use-profiles
 
       - name: Get Flutter packages
         script: |
@@ -81,11 +50,6 @@ workflows:
           cd mobile/ios
           pod install --repo-update
 
-      - name: Set up code signing (after pods)
-        script: |
-          cd mobile
-          xcode-project use-profiles
-
       - name: Set build number
         script: |
           LATEST_BUILD_NUMBER=$(app-store-connect get-latest-app-store-build-number "$APP_STORE_APP_ID")
@@ -96,7 +60,7 @@ workflows:
         script: |
           cd mobile
           flutter build ipa --release \
-            --export-options-plist=/Users/builder/export_options.plist
+            --export-options-plist=ios/ExportOptions.plist
 
     artifacts:
       - mobile/build/ios/ipa/*.ipa
