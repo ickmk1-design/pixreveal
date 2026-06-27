@@ -12,7 +12,7 @@
 - CATEGORIES: cars y=24.7, space y=38.5, animals y=51.3, beach y=65.8, fitness y=79.6, own y=91.9
 - SHOP: watch-ad y=13, packs y=29, themes y=52 ve y=66
 - SETTINGS sağ taraf x=78, y'ler: sfx 24.4, music 30.3, vibe 35.8, link 52.9, restore 66.85, privacy 78.9, terms 84.25
-- VICTORY/PAYWALL: TAHMIN, kalibrasyon lazım
+- VICTORY/PAYWALL: KALİBRE EDİLDİ ✓
 
 ## Kategori kilit durumu
 - Açık: cars, space, animals
@@ -31,12 +31,16 @@
 - Game: onWin→markCompleted→/victory?level=N, onLose→/gameover?level=N
 - Victory NEXT→level+1, RETRY→same level, MENU→/menu
 
+## TAMAMLANAN İŞLER
+- Settings toggle overlay: siyah mask sistemi kuruldu ✓
+- Victory hotspot kalibrasyonu: tamamlandı ✓
+- SnackBar: floating + margin + cyan border + dark bg ✓
+- Victory kategori resmi overlay ✓
+
 ## KALAN İŞLER
-1. Settings toggle overlay: pembe kutu KALDIRILACAK, yeşil toggle üstüne Container + Colors.black.withValues(alpha: 0.65) + borderRadius(40). Boyut: left=w*0.78, top=h*(yPercent-2.2)/100, width=w*0.16, height=h*0.042
-2. SnackBar'lar görünmüyor: floating + margin bottom=100 left=60 right=60 + cyan border + dark bg + centered text
-3. Victory calibrateMode ile kalibre edilecek (Ibo oyun kazanıp NEXT/RETRY/MENU tıklayacak, console'daki x=%, y=% hotspots.dart'a yazılacak)
-4. Paywall aynı (Beach/Fitness kategori tıklayarak açılır)
-5. Victory ortasındaki kategori resmi overlay: x=0.244, y=0.273, w=0.567, h=0.234
+1. Menü coin badge: PNG'deki static badge zemini silindi, Flutter dinamik badge bekleniyor (FIX IN PROGRESS)
+2. Game Over "USE 1 TOKEN": PNG yazısı tam silinmedi, Flutter overlay çakışıyor (FIX IN PROGRESS)
+3. Paywall offerings: Play Console'a APK yüklenince test edilecek
 
 ## Önemli
 - MOR YOK (cyan #00D4FF + pembe #ff006e + altın #ffd700 + lacivert)

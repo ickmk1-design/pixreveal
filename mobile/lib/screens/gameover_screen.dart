@@ -22,7 +22,11 @@ class _GameoverScreenState extends State<GameoverScreen> {
   void initState() {
     super.initState();
     LivesService.instance.deductLife();
+    AdService.instance.onPlayerDied(); // her 3 ölümde otomatik interstitial
   }
+
+  // Token miktarı — PNG'deki static '1' silindi, buradan dinamik gösterilir.
+  static const int continueCost = 5;
 
   @override
   Widget build(BuildContext context) {
@@ -38,6 +42,42 @@ class _GameoverScreenState extends State<GameoverScreen> {
             context.go('/menu');
           },
           onNavigate: (target, id) => _navigate(context, target, id),
+          overlayBuilder: (size) => [
+            Positioned(
+              left: size.width * 0.14,
+              top: size.height * 0.54,
+              width: size.width * 0.72,
+              height: size.height * 0.09,
+              child: IgnorePointer(
+                child: Center(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Image.asset(
+                        'assets/ui/coin_icon.png',
+                        width: size.height * 0.040,
+                        height: size.height * 0.040,
+                      ),
+                      SizedBox(width: size.width * 0.02),
+                      Text(
+                        'USE $continueCost TOKENS',
+                        style: TextStyle(
+                          fontSize: size.height * 0.024,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
+                          letterSpacing: 0.5,
+                          shadows: const [
+                            Shadow(color: Colors.black, blurRadius: 6, offset: Offset(0, 2)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -50,13 +90,13 @@ class _GameoverScreenState extends State<GameoverScreen> {
         if (id == 'watch-ad') {
           _handleRevive();
         } else if (id == 'use-token') {
-          if (TokenService.instance.balance >= 5) {
+          if (TokenService.instance.balance >= continueCost) {
             AudioService.play('token_insert');
-            TokenService.instance.spendToken(5); // fire-and-forget
-            LivesService.instance.addLife();     // fire-and-forget
+            TokenService.instance.spendToken(continueCost); // fire-and-forget
+            LivesService.instance.addLife();                // fire-and-forget
             context.go('/countdown?level=${widget.levelId}');
           } else {
-            _snack('Yeterli token yok (5 gerekli). Reklam izle veya token satın al.');
+            _snack('Yeterli token yok ($continueCost gerekli). Reklam izle veya token satın al.');
           }
         } else {
           context.go('/countdown?level=${widget.levelId}');
@@ -68,7 +108,7 @@ class _GameoverScreenState extends State<GameoverScreen> {
     }
   }
 
-  static const int _dailyAdLimit = 3;
+  static const int _dailyAdLimit = 5;
   static const String _kAdCount = 'ad_continues_today';
   static const String _kAdDate  = 'ad_continue_date';
 
@@ -111,7 +151,7 @@ class _GameoverScreenState extends State<GameoverScreen> {
 
     _checkDailyAdLimit().then((allowed) {
       if (!allowed) {
-        _snack('Günlük limit doldu (3/3). Yarın tekrar dene.');
+        _snack('Günlük limit doldu (5/5). Yarın tekrar dene.');
         return;
       }
       AdService.instance.showRewarded(

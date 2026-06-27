@@ -6,6 +6,8 @@ import '../services/audio_service.dart';
 import '../services/purchase_service.dart';
 import '../services/token_service.dart';
 import '../services/entitlement_service.dart';
+import '../services/ad_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ShopScreen extends StatefulWidget {
   const ShopScreen({super.key});
@@ -72,7 +74,7 @@ class _ShopScreenState extends State<ShopScreen> {
   void _handleAction(String id) {
     switch (id) {
       case 'watch-ad':
-        _snack('Reklam entegrasyonu yakında');
+        _handleWatchAd();
       case 'pack-20':
         _buyTokens(20);
       case 'pack-50':
@@ -101,6 +103,42 @@ class _ShopScreenState extends State<ShopScreen> {
       default:
         _snack('Yakında');
     }
+  }
+
+  static const int _dailyAdTokenLimit = 10;
+  static const String _kAdCount = 'shop_ad_tokens_today';
+  static const String _kAdDate  = 'shop_ad_date';
+
+  Future<void> _handleWatchAd() async {
+    if (!AdService.instance.isRewardedReady) {
+      _snack('Reklam henüz hazırlanıyor, birkaç saniye bekle.');
+      return;
+    }
+
+    final prefs = await SharedPreferences.getInstance();
+    final today = DateTime.now();
+    final dateStr = '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
+    final savedDate = prefs.getString(_kAdDate) ?? '';
+    if (savedDate != dateStr) {
+      await prefs.setInt(_kAdCount, 0);
+      await prefs.setString(_kAdDate, dateStr);
+    }
+    final count = prefs.getInt(_kAdCount) ?? 0;
+    if (count >= _dailyAdTokenLimit) {
+      _snack('Günlük limit doldu (10/10). Yarın tekrar dene.');
+      return;
+    }
+
+    AdService.instance.showRewarded(
+      onEarned: () async {
+        await prefs.setInt(_kAdCount, count + 1);
+        await TokenService.instance.addTokens(1);
+        if (mounted) _snack('1 token kazandın! Bakiye: ${TokenService.instance.balance}');
+      },
+      onNotReady: () {
+        if (mounted) _snack('Reklam hazır değil, biraz bekle.');
+      },
+    );
   }
 
   Future<void> _buyTokens(int amount) async {

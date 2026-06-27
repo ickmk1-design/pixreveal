@@ -20,26 +20,41 @@ class MenuScreen extends StatelessWidget {
             assetPath: 'assets/images/menu.png',
             onNavigate: (target, id) => _navigate(context, target),
             overlayBuilder: (size) => [
-              // Coin overlay — hotspot 'coins': x=64, y=0, w=36, h=6
-              // PNG'deki coin alanının tam üstüne coin sayısını yazar.
               Positioned(
-                left: size.width * 0.64,
-                top: size.height * 0.005,
-                width: size.width * 0.36,
-                height: size.height * 0.06,
+                top: size.height * 0.04,
+                right: size.width * 0.05,
                 child: IgnorePointer(
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      '$balance',
-                      style: TextStyle(
-                        fontSize: size.height * 0.022,
-                        fontWeight: FontWeight.w900,
-                        color: const Color(0xFFFFD700),
-                        shadows: const [
-                          Shadow(color: Color(0xFFFFAA00), blurRadius: 8),
-                        ],
-                      ),
+                  child: Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: size.width * 0.04,
+                      vertical: size.height * 0.008,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xCC1A0E2E),
+                      borderRadius: BorderRadius.circular(30),
+                      border: Border.all(color: const Color(0xFFFFC107), width: 2),
+                      boxShadow: const [
+                        BoxShadow(color: Color(0x55FFB300), blurRadius: 12),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Image.asset(
+                          'assets/ui/coin_icon.png',
+                          width: size.width * 0.06,
+                          height: size.width * 0.06,
+                        ),
+                        SizedBox(width: size.width * 0.015),
+                        Text(
+                          '$balance',
+                          style: TextStyle(
+                            color: const Color(0xFFFFD24F),
+                            fontSize: size.width * 0.05,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),

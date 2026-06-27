@@ -1,7 +1,7 @@
 class RevenueCatKeys {
   // TODO: Production keys geldiğinde buraya ekle
-  static const androidApiKey = 'test_KUxVJUvmaaazvPxhjMmSGkYWcNa';
-  static const iosApiKey = 'test_KUxVJUvmaaazvPxhjMmSGkYWcNa';
+  static const androidApiKey = 'goog_rPbrjRZwrFidURuOCNWQuULSvlE';
+  static const iosApiKey = 'appl_PHKgiFUZdmYMUpEbozvKseEKxxj';
 
   static const entitlementPremium = 'premium';
 

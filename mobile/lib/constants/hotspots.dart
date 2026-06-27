@@ -28,22 +28,13 @@ const Map<String, List<Hotspot>> kHotspots = {
     Hotspot(id: 'settings', x: 22, y: 73,  w: 56, h: 8,  target: 'settings',   label: 'AYARLAR'),
   ],
 
-  // ─── CATEGORIES ───────────────────────────────────────────────
-  // cars y=24.7, space y=38.5, animals y=51.3, beach y=65.8, fitness y=79.6
-  'categories': [
-    Hotspot(id: 'cat-cars',    x: 5, y: 19,  w: 90, h: 12, target: 'cat:cars',    label: 'SÜPER ARABALAR'),
-    Hotspot(id: 'cat-space',   x: 5, y: 33,  w: 90, h: 12, target: 'cat:space',   label: 'DERİN UZAY'),
-    Hotspot(id: 'cat-animals', x: 5, y: 46,  w: 90, h: 12, target: 'cat:animals', label: 'VAHŞİ HAYVANLAR'),
-    Hotspot(id: 'cat-beach',   x: 5, y: 60,  w: 90, h: 12, target: 'paywall',     label: 'PLAJ GLAMOUR'),
-    Hotspot(id: 'cat-fitness', x: 5, y: 74,  w: 90, h: 12, target: 'paywall',     label: 'FITNESS'),
-    Hotspot(id: 'cat-own',     x: 14, y: 88, w: 72, h: 7,  target: 'paywall',     label: 'KENDİ FOTOĞRAF'),
-  ],
+  // categories: native ekrana geçildi — hotspot listesi kaldırıldı (kalibrasyon yok).
 
   // ─── HUD (power-ups, right column) ────────────────────────────
   'hud': [
-    Hotspot(id: 'pu-brush', x: 81, y: 29.5, w: 14, h: 7.5, target: 'none', label: 'Brush'),
-    Hotspot(id: 'pu-bolt',  x: 81, y: 42.5, w: 14, h: 7.5, target: 'none', label: 'Bolt'),
-    Hotspot(id: 'pu-bomb',  x: 81, y: 55.5, w: 14, h: 7.5, target: 'none', label: 'Bomb'),
+    Hotspot(id: 'pu-freeze', x: 81, y: 29.5, w: 14, h: 7.5, target: 'none', label: 'Freeze'),
+    Hotspot(id: 'pu-speed',  x: 81, y: 42.5, w: 14, h: 7.5, target: 'none', label: 'Speed'),
+    Hotspot(id: 'pu-shield', x: 81, y: 55.5, w: 14, h: 7.5, target: 'none', label: 'Shield'),
   ],
 
   // ─── GAME OVER (estimate — Ibo couldn't test live) ────────────
@@ -53,11 +44,12 @@ const Map<String, List<Hotspot>> kHotspots = {
     Hotspot(id: 'quit',      x: 28, y: 77, w: 44, h: 6, target: 'menu',  label: 'ÇIK'),
   ],
 
-  // ─── VICTORY (estimate — couldn't test live) ──────────────────
+  // ─── VICTORY (calibrated 2026-06-25) ─────────────────────────
+  // next: center x=40.8, y=79.1 | retry: center x=32.8, y=88.0 | menu: center x=62.1, y=87.7
   'victory': [
-    Hotspot(id: 'next',  x: 14.6, y: 78.2, w: 40, h: 5.5, target: 'next-level', label: 'SONRAKİ'),
-    Hotspot(id: 'retry', x: 20.3, y: 87.0, w: 26, h: 5.0, target: 'retry',      label: 'TEKRAR'),
-    Hotspot(id: 'menu',  x: 45.7, y: 87.5, w: 26, h: 5.0, target: 'menu',       label: 'MENÜ'),
+    Hotspot(id: 'next',  x: 8,    y: 75.5, w: 66, h: 7.5, target: 'next-level', label: 'SONRAKİ'),
+    Hotspot(id: 'retry', x: 18,   y: 84.5, w: 30, h: 7.0, target: 'retry',      label: 'TEKRAR'),
+    Hotspot(id: 'menu',  x: 48,   y: 84.5, w: 30, h: 7.0, target: 'menu',       label: 'MENÜ'),
   ],
 
   // ─── SHOP ─────────────────────────────────────────────────────

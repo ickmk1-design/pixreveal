@@ -29,6 +29,10 @@ class AdService {
   InterstitialAd? _interstitial;
   bool _initialized = false;
 
+  // Session-bazlı ölüm sayacı — uygulama kapanınca sıfırlanır.
+  int _sessionDeaths = 0;
+  static const int _deathsPerAd = 3;
+
   bool get isVip => EntitlementService.instance.isPremium;
 
   /// Çağır: main() içinde, UMP consent sonrası.
@@ -136,6 +140,17 @@ class AdService {
         },
       ),
     );
+  }
+
+  /// Oyuncu öldüğünde çağır. Her 3 ölümde 1 otomatik interstitial.
+  Future<void> onPlayerDied() async {
+    if (!_initialized || isVip) return;
+    _sessionDeaths++;
+    debugPrint('[AdService] Death #$_sessionDeaths');
+    if (_sessionDeaths % _deathsPerAd == 0) {
+      debugPrint('[AdService] Auto interstitial after $_sessionDeaths deaths');
+      await _showInterstitial();
+    }
   }
 
   /// Level tamamlandığında çağır. Her [EconomyConfig.interstitialEvery]
