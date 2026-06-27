@@ -12,7 +12,7 @@ workflows:
         APP_STORE_APP_ID: 6784971749
         BUNDLE_ID: com.cytbilisim.pixreveal
       flutter: stable
-      xcode: latest
+      xcode: 16.2
       cocoapods: default
     triggering:
       events:
