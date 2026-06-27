@@ -6,9 +6,6 @@ workflows:
     integrations:
       app_store_connect: app_store_credentials
     environment:
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: com.cytbilisim.pixreveal
       vars:
         APP_STORE_APP_ID: 6784971749
       flutter: stable
