@@ -1,53 +1,4 @@
 workflows:
-  android-release:
-    name: PixReveal Android Release
-    max_build_duration: 60
-    instance_type: mac_mini_m2
-    environment:
-      groups:
-        - google_play  # GCLOUD_SERVICE_ACCOUNT_CREDENTIALS, PACKAGE_NAME
-        - keystore     # CM_KEYSTORE, CM_KEYSTORE_PASSWORD, CM_KEY_ALIAS, CM_KEY_PASSWORD
-      flutter: stable
-      java: 17
-    triggering:
-      events:
-        - push
-      branch_patterns:
-        - pattern: main
-          include: true
-    scripts:
-      - name: Set up local.properties
-        script: |
-          echo "flutter.sdk=$HOME/programs/flutter" > "$CM_BUILD_DIR/android/local.properties"
-      - name: Get Flutter packages
-        script: flutter packages pub get
-      - name: Flutter analyze
-        script: flutter analyze
-      - name: Build AAB
-        script: |
-          BUILD_NUMBER=$(($(google-play get-latest-build-number --package-name "$PACKAGE_NAME" --tracks=internal) + 1))
-          flutter build appbundle --release \
-            --build-name=1.0.$BUILD_NUMBER \
-            --build-number=$BUILD_NUMBER
-      - name: Build APK
-        script: flutter build apk --release
-    artifacts:
-      - build/**/outputs/**/*.aab
-      - build/**/outputs/**/*.apk
-      - build/**/outputs/**/mapping.txt
-      - flutter_drive.log
-    publishing:
-      email:
-        recipients:
-          - info@cytbilisim.com
-        notify:
-          success: true
-          failure: true
-      google_play:
-        credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
-        track: internal
-        submit_as_draft: true
-
   ios-release:
     name: PixReveal iOS Release
     max_build_duration: 60
@@ -55,13 +6,12 @@ workflows:
     integrations:
       app_store_connect: app_store_credentials
     environment:
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: com.cytbilisim.pixreveal
+      groups:
+        - signing
       vars:
         APP_STORE_APP_ID: 6784971749
       flutter: stable
-      xcode: latest
+      xcode: 16.2
       cocoapods: default
     triggering:
       events:
@@ -70,25 +20,51 @@ workflows:
         - pattern: main
           include: true
     scripts:
+      - name: Set up keychain
+        script: |
+          keychain initialize
+          echo $CM_CERTIFICATE | base64 -D > /tmp/dist_cert.p12
+          keychain add-certificates --certificate /tmp/dist_cert.p12 --certificate-password "$CM_CERTIFICATE_PASSWORD"
+
+      - name: Set up provisioning profile
+        script: |
+          PROFILES_DIR="$HOME/Library/MobileDevice/Provisioning Profiles"
+          mkdir -p "$PROFILES_DIR"
+          echo $CM_PROVISIONING_PROFILE | base64 -D > "$PROFILES_DIR/PixReveal.mobileprovision"
+          xcode-project use-profiles
+
       - name: Get Flutter packages
-        script: flutter packages pub get
+        script: |
+          cd mobile
+          flutter config --no-enable-swift-package-manager
+          flutter pub get
+
+      - name: Generate iOS config
+        script: |
+          cd mobile
+          flutter build ios --config-only
+
       - name: Pod install
         script: |
-          find . -name "Podfile" -execdir pod install \;
-      - name: Flutter analyze
-        script: flutter analyze
+          cd mobile/ios
+          pod install --repo-update
+
       - name: Set build number
         script: |
-          cd $CM_BUILD_DIR
           LATEST_BUILD_NUMBER=$(app-store-connect get-latest-app-store-build-number "$APP_STORE_APP_ID")
-          cd ios
+          cd mobile/ios
           agvtool new-version -all $(($LATEST_BUILD_NUMBER + 1))
+
       - name: Build IPA
-        script: flutter build ipa --release --export-options-plist=/Users/builder/export_options.plist
+        script: |
+          cd mobile
+          flutter build ipa --release \
+            --export-options-plist=ios/ExportOptions.plist
+
     artifacts:
-      - build/ios/ipa/*.ipa
+      - mobile/build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
-      - flutter_drive.log
+
     publishing:
       email:
         recipients:
