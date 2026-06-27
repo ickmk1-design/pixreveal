@@ -49,8 +49,12 @@
 	</dict>
 	<key>GADApplicationIdentifier</key>
 	<string>ca-app-pub-3940256099942544~1458002511</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>NSUserTrackingUsageDescription</key>
 	<string>Bu uygulama sana daha iyi reklamlar göstermek için reklamveren verilerini kullanır.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>PixReveal needs access to your photos to let you play with your own images.</string>
 	<key>SKAdNetworkItems</key>
 	<array>
 		<dict>

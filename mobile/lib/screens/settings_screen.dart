@@ -7,7 +7,6 @@ import 'package:url_launcher/url_launcher.dart';
 import '../widgets/mockup_screen.dart';
 import '../services/audio_service.dart';
 import '../services/settings_service.dart';
-import '../services/auth_service.dart';
 import '../services/purchase_service.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -44,6 +43,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   if (!sfx) _toggleOffOverlay(size, yPercent: 24.4),
                   if (!music) _toggleOffOverlay(size, yPercent: 30.3),
                   if (!vibration) _toggleOffOverlay(size, yPercent: 35.8),
+                  // ACCOUNT section (LINK ACCOUNT) — v1.0 hesapsız, PNG üzeri kapatıldı
+                  Positioned(
+                    left: 0,
+                    top: size.height * 0.375,
+                    width: size.width,
+                    height: size.height * 0.225,
+                    child: const IgnorePointer(
+                      child: ColoredBox(color: Color(0xFF050510)),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -98,106 +107,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   void _handleNone(String id) {
     switch (id) {
-      case 'link':
-        _showLinkAccountSheet();
       case 'restore':
         _restore();
       case 'privacy':
         _launch('https://pixreveal.app/privacy');
       case 'terms':
         _launch('https://pixreveal.app/terms');
-    }
-  }
-
-  void _showLinkAccountSheet() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: const Color(0xFF1A0F2E),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (_) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40, height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.white24,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 20),
-              const Text('Hesap Bağla',
-                  style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              const Text('Verilerini kaydet ve cihazlar arası senkronize et',
-                  style: TextStyle(color: Colors.white54, fontSize: 13),
-                  textAlign: TextAlign.center),
-              const SizedBox(height: 24),
-              _sheetButton(
-                icon: Icons.g_mobiledata_rounded,
-                label: 'Google ile devam et',
-                onTap: () { Navigator.pop(context); _signInGoogle(); },
-              ),
-              if (!kIsWeb && Platform.isIOS) ...[
-                const SizedBox(height: 12),
-                _sheetButton(
-                  icon: Icons.apple,
-                  label: 'Apple ile devam et',
-                  onTap: () { Navigator.pop(context); _signInApple(); },
-                ),
-              ],
-              const SizedBox(height: 12),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _sheetButton({required IconData icon, required String label, required VoidCallback onTap}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFF00D4FF), width: 1.5),
-          color: const Color(0xFF00D4FF).withValues(alpha: 0.08),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: Colors.white, size: 22),
-            const SizedBox(width: 10),
-            Text(label, style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600)),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _signInGoogle() async {
-    final result = await AuthService.instance.signInWithGoogle();
-    if (!mounted) return;
-    if (result.user != null) {
-      _snack('Hesap bağlandı: ${result.user!.email ?? result.user!.uid}');
-    } else if (result.error != null) {
-      _snack('Giriş yapılamadı: ${result.error}');
-    }
-  }
-
-  Future<void> _signInApple() async {
-    final result = await AuthService.instance.signInWithApple();
-    if (!mounted) return;
-    if (result.user != null) {
-      _snack('Hesap bağlandı: ${result.user!.email ?? result.user!.uid}');
-    } else if (result.error != null) {
-      _snack('Giriş yapılamadı: ${result.error}');
     }
   }
 

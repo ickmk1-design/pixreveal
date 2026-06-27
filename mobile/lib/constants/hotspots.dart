@@ -95,7 +95,6 @@ const Map<String, List<Hotspot>> kHotspots = {
     Hotspot(id: 'sfx',       x: 68, y: 21, w: 28, h: 7, target: 'toggle-sfx',       label: 'SFX'),
     Hotspot(id: 'music',     x: 68, y: 27, w: 28, h: 7, target: 'toggle-music',     label: 'Music'),
     Hotspot(id: 'vibe',      x: 68, y: 33, w: 28, h: 7, target: 'toggle-vibration', label: 'Vibe'),
-    Hotspot(id: 'link',      x: 20, y: 49, w: 60, h: 8, target: 'none',             label: 'Link'),
     Hotspot(id: 'restore',   x: 14, y: 63, w: 72, h: 8, target: 'none',             label: 'Restore'),
     Hotspot(id: 'privacy',   x: 4,  y: 75, w: 92, h: 8, target: 'none',             label: 'Privacy'),
     Hotspot(id: 'terms',     x: 4,  y: 80, w: 92, h: 8, target: 'none',             label: 'Terms'),
