@@ -45,12 +45,6 @@ workflows:
           cd mobile/ios
           pod install --repo-update
 
-      - name: Set build number
-        script: |
-          LATEST_BUILD_NUMBER=$(app-store-connect get-latest-app-store-build-number "$APP_STORE_APP_ID")
-          cd mobile/ios
-          agvtool new-version -all $(($LATEST_BUILD_NUMBER + 1))
-
       - name: Pre-build signing check
         script: |
           echo "=== CODE SIGNING IDENTITIES ==="
@@ -62,8 +56,13 @@ workflows:
 
       - name: Build IPA
         script: |
+          LATEST=$(app-store-connect get-latest-app-store-build-number "$APP_STORE_APP_ID" 2>/dev/null || echo 1)
+          NEXT_BUILD=$(($LATEST + 1))
+          echo "ASC latest build: $LATEST → using build number: $NEXT_BUILD"
           cd mobile
-          flutter build ipa --release --export-options-plist ios/ExportOptions.plist 2>&1 | tee /tmp/flutter_build.log
+          flutter build ipa --release \
+            --build-number=$NEXT_BUILD \
+            --export-options-plist ios/ExportOptions.plist 2>&1 | tee /tmp/flutter_build.log
           BUILD_EXIT=${PIPESTATUS[0]}
           if [ $BUILD_EXIT -ne 0 ]; then
             echo "=== BUILD FAILED — LAST 300 LINES ==="
