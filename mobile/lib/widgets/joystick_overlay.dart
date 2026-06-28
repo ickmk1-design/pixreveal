@@ -55,7 +55,7 @@ class _JoystickOverlayState extends State<JoystickOverlay> {
 
     return Positioned(
       left: r.left + r.width * 0.08,
-      top: r.top + r.height * (1.0 - 0.09) - joystickSize,
+      top: r.top + r.height * (1.0 - 0.03) - joystickSize,
       width: joystickSize,
       height: joystickSize,
       child: GestureDetector(

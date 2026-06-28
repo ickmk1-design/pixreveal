@@ -34,16 +34,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
               builder: (_, vibration, __) => MockupScreen(
                 screen: 'settings',
                 assetPath: localeAsset('settings'),
-                showBackButton: true,
-                onBack: () {
-                  AudioService.play('button_click');
-                  context.go('/menu');
-                },
+                showBackButton: false,
                 onNavigate: (target, id) => _navigate(target, id),
                 overlayBuilder: (size) => [
-                  if (!sfx) _toggleOffOverlay(size, yPercent: 22),
-                  if (!music) _toggleOffOverlay(size, yPercent: 30),
-                  if (!vibration) _toggleOffOverlay(size, yPercent: 38),
+                  // Geri ok — ScreenFrame içinde, PNG'nin empty box'ını örter
+                  Positioned(
+                    left: 10,
+                    top: 30,
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () {
+                        AudioService.play('button_click');
+                        context.go('/menu');
+                      },
+                      child: Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.black.withValues(alpha: 0.75),
+                        ),
+                        child: const Icon(Icons.chevron_left,
+                            color: Colors.white, size: 28),
+                      ),
+                    ),
+                  ),
+                  _toggleWidget(size, yCenter: 30, value: sfx),
+                  _toggleWidget(size, yCenter: 40, value: music),
+                  _toggleWidget(size, yCenter: 48, value: vibration),
                 ],
               ),
             ),
@@ -53,17 +71,41 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _toggleOffOverlay(Size size, {required double yPercent}) {
+  Widget _toggleWidget(Size size, {required double yCenter, required bool value}) {
+    const double tw = 56.0;
+    const double th = 28.0;
+    const double kw = 22.0;
     return Positioned(
-      left: size.width * 0.80,
-      top: size.height * (yPercent - 2.0) / 100,
-      width: size.width * 0.14,
-      height: size.height * 0.042,
+      left: size.width * 0.835,
+      top: size.height * yCenter / 100 - th / 2,
+      width: tw,
+      height: th,
       child: IgnorePointer(
-        child: Container(
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeInOut,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(40),
-            color: Colors.black.withValues(alpha: 0.65),
+            borderRadius: BorderRadius.circular(30),
+            color: value ? const Color(0xFF00CC44) : const Color(0xFF44445A),
+            boxShadow: value
+                ? [BoxShadow(color: const Color(0xFF00CC44).withValues(alpha: 0.5), blurRadius: 6)]
+                : [],
+          ),
+          child: AnimatedAlign(
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeInOut,
+            alignment: value ? Alignment.centerRight : Alignment.centerLeft,
+            child: Padding(
+              padding: const EdgeInsets.all(3),
+              child: Container(
+                width: kw,
+                height: kw,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white,
+                ),
+              ),
+            ),
           ),
         ),
       ),

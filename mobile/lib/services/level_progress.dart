@@ -1,3 +1,4 @@
+import 'dart:ui' as ui;
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Tracks level progression and category unlocks using SharedPreferences.
@@ -60,14 +61,15 @@ extension GameCategoryX on GameCategory {
   bool get isPremium => false;
 
   String get displayName {
+    final tr = ui.PlatformDispatcher.instance.locale.languageCode == 'tr';
     switch (this) {
-      case GameCategory.cars:     return 'SÜPER ARABALAR';
-      case GameCategory.space:    return 'DERİN UZAY';
-      case GameCategory.animals:  return 'VAHŞİ HAYVANLAR';
-      case GameCategory.beach:    return 'SAHİL';
+      case GameCategory.cars:     return tr ? 'SÜPER ARABALAR'   : 'SUPER CARS';
+      case GameCategory.space:    return tr ? 'DERİN UZAY'       : 'DEEP SPACE';
+      case GameCategory.animals:  return tr ? 'VAHŞİ HAYVANLAR'  : 'WILD ANIMALS';
+      case GameCategory.beach:    return tr ? 'SAHİL'            : 'BEACH';
       case GameCategory.fitness:  return 'FITNESS';
-      case GameCategory.ownImage: return 'KENDİ FOTOĞRAFIN';
-      case GameCategory.fantasy:  return 'FANTASTİK';
+      case GameCategory.ownImage: return tr ? 'KENDİ FOTOĞRAFIN' : 'OWN PHOTO';
+      case GameCategory.fantasy:  return tr ? 'FANTASTİK'        : 'FANTASY';
     }
   }
 

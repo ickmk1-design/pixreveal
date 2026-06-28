@@ -1,3 +1,4 @@
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -126,7 +127,8 @@ class _Header extends StatelessWidget {
           const Spacer(),
           // Başlık
           Text(
-            'KATEGORİ SEÇ',
+            ui.PlatformDispatcher.instance.locale.languageCode == 'tr'
+                ? 'KATEGORİ SEÇ' : 'SELECT CATEGORY',
             style: GoogleFonts.rajdhani(
               fontSize: 20,
               fontWeight: FontWeight.w800,
@@ -270,6 +272,7 @@ class _Thumbnail extends StatelessWidget {
         child: Image.asset(
           path,
           width: 100,
+          alignment: Alignment.topCenter,
           height: 80,
           fit: BoxFit.cover,
           errorBuilder: (_, __, ___) => _iconThumb(Icons.image_not_supported_outlined),
