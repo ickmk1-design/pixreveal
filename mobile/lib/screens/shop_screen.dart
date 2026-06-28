@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import '../widgets/mockup_screen.dart';
 import '../services/audio_service.dart';
@@ -7,6 +8,7 @@ import '../services/purchase_service.dart';
 import '../services/token_service.dart';
 import '../services/entitlement_service.dart';
 import '../services/ad_service.dart';
+import '../utils/locale_helper.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ShopScreen extends StatefulWidget {
@@ -40,13 +42,14 @@ class _ShopScreenState extends State<ShopScreen> {
           children: [
             MockupScreen(
               screen: 'shop',
-              assetPath: 'assets/images/shop.png',
+              assetPath: localeAsset('shop'),
               showBackButton: true,
               onBack: () {
                 AudioService.play('button_click');
                 context.go('/menu');
               },
               onNavigate: (target, id) => _navigate(target, id),
+              overlayBuilder: _buildPriceOverlays,
             ),
             if (_loading)
               const ColoredBox(
@@ -57,6 +60,44 @@ class _ShopScreenState extends State<ShopScreen> {
         ),
       ),
     );
+  }
+
+  String _price(int amount) {
+    final key = 'token_$amount';
+    final pkg = _offerings?.current?.getPackage(key)
+        ?? _offerings?.current?.availablePackages
+            .where((p) => p.identifier == key)
+            .firstOrNull;
+    return pkg?.storeProduct.priceString ?? '';
+  }
+
+  List<Widget> _buildPriceOverlays(Size size) {
+    final style = GoogleFonts.rajdhani(
+      fontSize: size.width * 0.035,
+      fontWeight: FontWeight.w700,
+      color: const Color(0xFF1A0A00),
+    );
+
+    Widget label(double xPct, double yPct, double wPct, String text) => Positioned(
+          left: size.width * xPct / 100,
+          top: size.height * yPct / 100,
+          width: size.width * wPct / 100,
+          child: Text(text, style: style, textAlign: TextAlign.center),
+        );
+
+    final p20  = _price(20);
+    final p50  = _price(50);
+    final p120 = _price(120);
+    final p300 = _price(300);
+    final p750 = _price(750);
+
+    return [
+      if (p20.isNotEmpty)  label(2,  38.5, 31, p20),
+      if (p50.isNotEmpty)  label(35, 38.5, 30, p50),
+      if (p120.isNotEmpty) label(67, 38.5, 31, p120),
+      if (p300.isNotEmpty) label(2,  56.5, 46, p300),
+      if (p750.isNotEmpty) label(51, 56.5, 47, p750),
+    ];
   }
 
   void _navigate(String target, String id) {
@@ -86,13 +127,14 @@ class _ShopScreenState extends State<ShopScreen> {
       case 'pack-750':
         _buyTokens(750);
       case 'theme-cars':
+        _snack('Arabalar teması seçildi');
       case 'theme-space':
+        _snack('Uzay teması seçildi');
       case 'theme-anim':
-        _snack('Tema seçimi yakında');
+        _snack('Hayvanlar teması seçildi');
       case 'theme-beach':
-      case 'theme-lock':
         if (EntitlementService.instance.isPremium) {
-          _snack('Tema seçimi yakında');
+          _snack('Plaj teması seçildi');
         } else {
           context.go('/paywall');
         }

@@ -8,6 +8,7 @@ import '../widgets/mockup_screen.dart';
 import '../services/audio_service.dart';
 import '../services/settings_service.dart';
 import '../services/purchase_service.dart';
+import '../utils/locale_helper.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -32,7 +33,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               valueListenable: _settings.vibration,
               builder: (_, vibration, __) => MockupScreen(
                 screen: 'settings',
-                assetPath: 'assets/images/settings.png',
+                assetPath: localeAsset('settings'),
                 showBackButton: true,
                 onBack: () {
                   AudioService.play('button_click');
@@ -40,9 +41,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 },
                 onNavigate: (target, id) => _navigate(target, id),
                 overlayBuilder: (size) => [
-                  if (!sfx) _toggleOffOverlay(size, yPercent: 30.8),
-                  if (!music) _toggleOffOverlay(size, yPercent: 38.4),
-                  if (!vibration) _toggleOffOverlay(size, yPercent: 45.2),
+                  if (!sfx) _toggleOffOverlay(size, yPercent: 22),
+                  if (!music) _toggleOffOverlay(size, yPercent: 30),
+                  if (!vibration) _toggleOffOverlay(size, yPercent: 38),
                 ],
               ),
             ),
@@ -54,9 +55,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _toggleOffOverlay(Size size, {required double yPercent}) {
     return Positioned(
-      left: size.width * 0.78,
-      top: size.height * (yPercent - 2.2) / 100,
-      width: size.width * 0.16,
+      left: size.width * 0.80,
+      top: size.height * (yPercent - 2.0) / 100,
+      width: size.width * 0.14,
       height: size.height * 0.042,
       child: IgnorePointer(
         child: Container(

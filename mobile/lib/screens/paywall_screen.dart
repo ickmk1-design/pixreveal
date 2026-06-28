@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import '../widgets/mockup_screen.dart';
 import '../services/audio_service.dart';
 import '../services/purchase_service.dart';
+import '../utils/locale_helper.dart';
 
 class PaywallScreen extends StatefulWidget {
   const PaywallScreen({super.key});
@@ -54,10 +56,36 @@ class _PaywallScreenState extends State<PaywallScreen> {
           children: [
             MockupScreen(
               screen: 'paywall',
-              assetPath: 'assets/images/paywall.png',
+              assetPath: localeAsset('paywall'),
               calibrateMode: false,
               showBackButton: false,
               onNavigate: _onTap,
+              overlayBuilder: _buildPriceOverlays,
+            ),
+            // X close button (not present in PNG design)
+            Positioned(
+              top: 12,
+              right: 12,
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () {
+                  AudioService.play('button_click');
+                  if (context.canPop()) { context.pop(); } else { context.go('/menu'); }
+                },
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.black.withValues(alpha: 0.55),
+                    border: Border.all(
+                      color: const Color(0xFF00D4FF).withValues(alpha: 0.6),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: const Icon(Icons.close, color: Colors.white, size: 22),
+                ),
+              ),
             ),
             if (_loading)
               const ColoredBox(
@@ -68,6 +96,40 @@ class _PaywallScreenState extends State<PaywallScreen> {
         ),
       ),
     );
+  }
+
+  List<Widget> _buildPriceOverlays(Size size) {
+    final style = GoogleFonts.rajdhani(
+      fontSize: size.width * 0.055,
+      fontWeight: FontWeight.w800,
+      color: Colors.white,
+      shadows: const [Shadow(color: Color(0xFF00D4FF), blurRadius: 8)],
+    );
+
+    return [
+      if (_monthlyPackage != null)
+        Positioned(
+          left: size.width * 0.04,
+          top: size.height * 0.485,
+          width: size.width * 0.43,
+          child: Text(
+            _monthlyPackage!.storeProduct.priceString,
+            style: style,
+            textAlign: TextAlign.center,
+          ),
+        ),
+      if (_yearlyPackage != null)
+        Positioned(
+          left: size.width * 0.51,
+          top: size.height * 0.485,
+          width: size.width * 0.44,
+          child: Text(
+            _yearlyPackage!.storeProduct.priceString,
+            style: style,
+            textAlign: TextAlign.center,
+          ),
+        ),
+    ];
   }
 
   void _onTap(String target, String id) {

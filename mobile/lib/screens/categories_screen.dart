@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../services/level_progress.dart';
 import '../services/audio_service.dart';
 import '../services/token_service.dart';
+import '../utils/locale_helper.dart';
 
 class CategoriesScreen extends StatelessWidget {
   const CategoriesScreen({super.key});
@@ -78,9 +79,9 @@ class _Background extends StatelessWidget {
             ),
           ),
         ),
-        // AI asset gelince üzerine oturur; yoksa SizedBox (hata yok)
+        // Locale-based background (categories_tr.png / categories_en.png)
         Image.asset(
-          'assets/images/categories_bg_clean.png',
+          localeAsset('categories'),
           fit: BoxFit.cover,
           errorBuilder: (_, __, ___) => const SizedBox.shrink(),
         ),
