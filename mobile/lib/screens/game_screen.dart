@@ -1,4 +1,3 @@
-import 'dart:math' show sqrt;
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -9,17 +8,7 @@ import '../game/utils/game_constants.dart';
 import '../services/level_progress.dart';
 import '../services/audio_service.dart';
 import '../services/token_service.dart';
-
-/// Dokunmatik kontrol ayarları — tek yerden değiştir.
-class TouchControlConfig {
-  /// Minimum hareket — altındakiler yok sayılır (jitter filtresi).
-  static const double deadZone = 4.0;
-  /// Eksen değiştirmek için yeni eksenin mevcut ekseni geçmesi gereken oran.
-  /// Yüksek → daha yapışkan/kararlı, düşük → daha çevik.
-  static const double turnDominanceRatio = 1.4;
-  /// Eksen değiştirmek için yeni eksende minimum hareket (px, anchor'dan).
-  static const double turnMinDelta = 12.0;
-}
+import '../widgets/joystick_overlay.dart';
 
 /// Kazanınca tam resim gösterme süresi (saniye).
 class RevealConfig {
@@ -38,16 +27,10 @@ enum _GameOutcome { none, won, lost }
 
 class _HudScreenState extends State<HudScreen> with TickerProviderStateMixin {
   late final PixRevealGame _game;
-  late final String _imageFile; // field so closure captures stable reference
+  late final String _imageFile;
 
-  // Outcome guard — once set, the other path is ignored entirely.
   _GameOutcome _outcome = _GameOutcome.none;
 
-  // Touch hysteresis state — anchor resets on cross-axis direction change.
-  Offset? _panAnchor;
-  MoveDirection _currentDir = MoveDirection.none;
-
-  // Reveal overlay state — only ever true on win path
   bool _showReveal = false;
   String _revealRoute = '';
   late final AnimationController _revealCtrl;
@@ -84,16 +67,12 @@ class _HudScreenState extends State<HudScreen> with TickerProviderStateMixin {
       tokens: TokenService.instance.balance,
       imageFile: _imageFile,
     )
-      // ── WIN PATH: reveal overlay → victory ──────────────────────
-      // Synchronous callback — setState fires in the same frame as win
-      // detection, guaranteed visible before any navigation.
       ..onWin = (captured, stars, score, combo, elapsed) {
-        if (_outcome != _GameOutcome.none) return; // already ended — ignore
+        if (_outcome != _GameOutcome.none) return;
         _outcome = _GameOutcome.won;
         AudioService.play('level_complete');
-        // Token ödülü: temel 10 + combo×2 + yıldız×5
         final tokenReward = 10 + combo * 2 + stars * 5;
-        TokenService.instance.addTokens(tokenReward); // fire-and-forget
+        TokenService.instance.addTokens(tokenReward);
         if (!mounted) return;
         final route =
             '/victory?level=${widget.levelId}&score=$score&combo=$combo&time=$elapsed&tokens=$tokenReward';
@@ -106,13 +85,11 @@ class _HudScreenState extends State<HudScreen> with TickerProviderStateMixin {
           const Duration(seconds: RevealConfig.holdSeconds),
           _dismissReveal,
         );
-        LevelProgress.markCompleted(widget.levelId); // fire-and-forget
+        LevelProgress.markCompleted(widget.levelId);
       }
-      // ── LOSE PATH: straight to gameover — NO reveal, NO victory ─
       ..onLose = () {
-        if (_outcome != _GameOutcome.none) return; // already ended — ignore
+        if (_outcome != _GameOutcome.none) return;
         _outcome = _GameOutcome.lost;
-        // 'die' audio is already played inside pixreveal_game._die(); no dup.
         _goToGameover();
       };
   }
@@ -124,7 +101,6 @@ class _HudScreenState extends State<HudScreen> with TickerProviderStateMixin {
     super.dispose();
   }
 
-  // Called after 4s or on tap — only valid during win path.
   void _dismissReveal() {
     if (_outcome != _GameOutcome.won) return;
     if (!_showReveal) return;
@@ -143,91 +119,25 @@ class _HudScreenState extends State<HudScreen> with TickerProviderStateMixin {
     });
   }
 
-  void _onPanStart(DragStartDetails details) {
-    _panAnchor = details.localPosition;
-    _currentDir = MoveDirection.none;
-    if (!_showReveal) _game.handleDirection(MoveDirection.none);
-  }
-
-  void _onPanUpdate(DragUpdateDetails details) {
-    if (_showReveal || _panAnchor == null) return;
-    final delta = details.localPosition - _panAnchor!;
-    final newDir = _snapWithHysteresis(delta);
-    if (newDir != null) {
-      if (newDir != _currentDir) {
-        // Reset anchor only on cross-axis turns to prevent accumulation bias.
-        if (_isCrossAxis(_currentDir, newDir)) {
-          _panAnchor = details.localPosition;
-        }
-        _currentDir = newDir;
-      }
-      _game.handleDirection(_currentDir);
+  /// Joystick analog vektörünü 4-yön MoveDirection'a çevirir.
+  void _onJoystickMove(Offset dir) {
+    if (dir == Offset.zero) {
+      _game.handleDirection(MoveDirection.none);
+      return;
     }
-  }
-
-  void _onPanEnd(DragEndDetails _) {
-    _currentDir = MoveDirection.none;
-    _panAnchor = null;
-    if (!_showReveal) _game.handleDirection(MoveDirection.none);
-  }
-
-  void _onPanCancel() {
-    _currentDir = MoveDirection.none;
-    _panAnchor = null;
-    if (!_showReveal) _game.handleDirection(MoveDirection.none);
-  }
-
-  /// Anchor'dan birikmiş vektöre hysteresis uygular.
-  /// Null → dead-zone içinde, mevcut yönde devam.
-  MoveDirection? _snapWithHysteresis(Offset delta) {
-    final ax = delta.dx.abs();
-    final ay = delta.dy.abs();
-    final mag = sqrt(ax * ax + ay * ay);
-    if (mag < TouchControlConfig.deadZone) return null;
-
-    if (_currentDir == MoveDirection.none) {
-      // İlk yön — dominant eksene snap.
-      return ax > ay
-          ? (delta.dx > 0 ? MoveDirection.right : MoveDirection.left)
-          : (delta.dy > 0 ? MoveDirection.down : MoveDirection.up);
-    }
-
-    final curIsH = _currentDir == MoveDirection.left ||
-        _currentDir == MoveDirection.right;
-
-    if (curIsH) {
-      // Yatay gidiyoruz — dikeye geçmek için ay yeterince baskın olmalı.
-      if (ay >= ax * TouchControlConfig.turnDominanceRatio &&
-          ay >= TouchControlConfig.turnMinDelta) {
-        return delta.dy > 0 ? MoveDirection.down : MoveDirection.up;
-      }
-      // Aynı eksende kal; sol↔sağ geçişe izin ver.
-      return delta.dx > 0 ? MoveDirection.right : MoveDirection.left;
+    final ax = dir.dx.abs();
+    final ay = dir.dy.abs();
+    if (ax >= ay) {
+      _game.handleDirection(dir.dx > 0 ? MoveDirection.right : MoveDirection.left);
     } else {
-      // Dikey gidiyoruz — yataya geçmek için ax yeterince baskın olmalı.
-      if (ax >= ay * TouchControlConfig.turnDominanceRatio &&
-          ax >= TouchControlConfig.turnMinDelta) {
-        return delta.dx > 0 ? MoveDirection.right : MoveDirection.left;
-      }
-      // Aynı eksende kal; yukarı↔aşağı geçişe izin ver.
-      return delta.dy > 0 ? MoveDirection.down : MoveDirection.up;
+      _game.handleDirection(dir.dy > 0 ? MoveDirection.down : MoveDirection.up);
     }
   }
-
-  static bool _isCrossAxis(MoveDirection a, MoveDirection b) {
-    if (a == MoveDirection.none || b == MoveDirection.none) return false;
-    final aH = a == MoveDirection.left || a == MoveDirection.right;
-    final bH = b == MoveDirection.left || b == MoveDirection.right;
-    return aH != bH;
-  }
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF050510),
-      // Outer Stack: lets the reveal overlay cover the full Scaffold body
-      // (above SafeArea + AspectRatio constraints), guaranteeing z-order.
       body: Stack(
         fit: StackFit.expand,
         children: [
@@ -236,50 +146,56 @@ class _HudScreenState extends State<HudScreen> with TickerProviderStateMixin {
             child: Center(
               child: AspectRatio(
                 aspectRatio: 1024 / 1536,
-                child: Stack(
-                  children: [
-                    // Oyun alanı — anchor-tabanlı hysteresis pan kontrolü
-                    Positioned.fill(
-                      child: GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onPanStart:  _onPanStart,
-                        onPanUpdate: _onPanUpdate,
-                        onPanEnd:    _onPanEnd,
-                        onPanCancel: _onPanCancel,
-                        child: GameWidget<PixRevealGame>(game: _game),
-                      ),
-                    ),
-                    // Sağ üst: ev + pause butonları (hidden during reveal)
-                    if (!_showReveal)
-                      Positioned(
-                        top: GameConstants.hudHeight + 8,
-                        right: 12,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            _HudButton(
-                              icon: Icons.home_outlined,
-                              onTap: () {
-                                AudioService.play('button_click');
-                                _navigateTo('/menu');
-                              },
-                            ),
-                            const SizedBox(height: 8),
-                            _HudButton(
-                              icon: Icons.pause,
-                              onTap: () {
-                                AudioService.play('button_click');
-                                if (_game.gameState == PixGameState.playing) {
-                                  _game.pauseGame();
-                                } else {
-                                  _game.resumeGame();
-                                }
-                              },
-                            ),
-                          ],
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final rect = Rect.fromLTWH(
+                      0, 0, constraints.maxWidth, constraints.maxHeight,
+                    );
+                    return Stack(
+                      children: [
+                        // Oyun alanı — Flame GameWidget (joystick kontrolü)
+                        Positioned.fill(
+                          child: GameWidget<PixRevealGame>(game: _game),
                         ),
-                      ),
-                  ],
+                        // Sol-alt sabit joystick
+                        if (!_showReveal)
+                          JoystickOverlay(
+                            imgRect: rect,
+                            onMove: _onJoystickMove,
+                          ),
+                        // Sağ üst: ev + pause butonları
+                        if (!_showReveal)
+                          Positioned(
+                            top: GameConstants.hudHeight + 8,
+                            right: 12,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                _HudButton(
+                                  icon: Icons.home_outlined,
+                                  onTap: () {
+                                    AudioService.play('button_click');
+                                    _navigateTo('/menu');
+                                  },
+                                ),
+                                const SizedBox(height: 8),
+                                _HudButton(
+                                  icon: Icons.pause,
+                                  onTap: () {
+                                    AudioService.play('button_click');
+                                    if (_game.gameState == PixGameState.playing) {
+                                      _game.pauseGame();
+                                    } else {
+                                      _game.resumeGame();
+                                    }
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
+                    );
+                  },
                 ),
               ),
             ),
@@ -321,7 +237,6 @@ class _RevealOverlay extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // Ken Burns: yavaş zoom
             AnimatedBuilder(
               animation: scaleAnimation,
               builder: (_, __) => Transform.scale(
@@ -334,7 +249,6 @@ class _RevealOverlay extends StatelessWidget {
                 ),
               ),
             ),
-            // Alt kısımda "dokun / devam et" ipucu
             Positioned(
               bottom: 48,
               left: 0,
