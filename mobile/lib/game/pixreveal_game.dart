@@ -214,6 +214,17 @@ class PixRevealGame extends FlameGame with KeyboardEvents {
     }
   }
 
+  /// Drawing-mode dead-end rescue: clear trail, snap to nearest border, no death.
+  void _unstickDrawing() {
+    for (final cell in _trailPath) {
+      grid.set(cell.$1, cell.$2, CellState.empty);
+    }
+    _trailPath.clear();
+    player.isDrawing = false;
+    player.direction = MoveDirection.none;
+    _unstickPlayer();
+  }
+
   void _unstickPlayer() {
     // Teleport to nearest BORDER cell
     double bestDist = double.infinity;
@@ -318,7 +329,15 @@ class PixRevealGame extends FlameGame with KeyboardEvents {
 
       // THEN: normal movement
       if (target == CellState.trail) {
-        // Can't cross own trail at non-previous points
+        // Can't cross own trail — check if completely surrounded (dead end rescue)
+        bool allBlocked = true;
+        for (final (dc, dr) in [(0, -1), (0, 1), (-1, 0), (1, 0)]) {
+          final tc = player.col + dc, tr = player.row + dr;
+          if (tc < 0 || tc >= GameGrid.gridCols || tr < 0 || tr >= GameGrid.gridRows) continue;
+          final ts = grid.get(tc, tr);
+          if (ts != CellState.trail) { allBlocked = false; break; }
+        }
+        if (allBlocked) _unstickDrawing();
         return;
       } else if (target == CellState.empty) {
         _movePlayer(nc, nr);
