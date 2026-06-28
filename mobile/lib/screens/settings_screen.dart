@@ -76,7 +76,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     const double th = 28.0;
     const double kw = 22.0;
     return Positioned(
-      left: size.width * 0.835,
+      left: size.width * 0.89 - tw / 2,
       top: size.height * yCenter / 100 - th / 2,
       width: tw,
       height: th,

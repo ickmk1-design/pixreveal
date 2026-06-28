@@ -272,7 +272,7 @@ class _Thumbnail extends StatelessWidget {
         child: Image.asset(
           path,
           width: 100,
-          alignment: Alignment.topCenter,
+          alignment: Alignment.center,
           height: 80,
           fit: BoxFit.cover,
           errorBuilder: (_, __, ___) => _iconThumb(Icons.image_not_supported_outlined),
