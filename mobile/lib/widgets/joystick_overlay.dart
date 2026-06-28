@@ -65,22 +65,28 @@ class _JoystickOverlayState extends State<JoystickOverlay> {
         child: Stack(
           alignment: Alignment.center,
           children: [
-            // Glow ring when active
-            if (_active)
-              Container(
-                width: joystickSize + 12,
-                height: joystickSize + 12,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF00D4FF).withValues(alpha: 0.6),
-                      blurRadius: 30,
-                      spreadRadius: 4,
-                    ),
-                  ],
+            // Static base ring — always visible
+            Container(
+              width: joystickSize,
+              height: joystickSize,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: const Color(0xFF00D4FF).withValues(alpha: _active ? 0.85 : 0.45),
+                  width: 2,
                 ),
+                color: Colors.black.withValues(alpha: 0.30),
+                boxShadow: _active
+                    ? [
+                        BoxShadow(
+                          color: const Color(0xFF00D4FF).withValues(alpha: 0.5),
+                          blurRadius: 24,
+                          spreadRadius: 2,
+                        ),
+                      ]
+                    : [],
               ),
+            ),
             // Knob
             AnimatedContainer(
               duration: _active ? Duration.zero : const Duration(milliseconds: 200),
@@ -94,39 +100,21 @@ class _JoystickOverlayState extends State<JoystickOverlay> {
               ),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                gradient: const RadialGradient(
-                  center: Alignment(-0.3, -0.3),
+                gradient: RadialGradient(
+                  center: const Alignment(-0.3, -0.3),
                   colors: [
-                    Color(0x4DFFFFFF),
-                    Color(0x806478B4),
-                    Color(0xCC1E2850),
+                    Colors.white.withValues(alpha: _active ? 0.9 : 0.6),
+                    const Color(0xFF00D4FF).withValues(alpha: _active ? 0.8 : 0.5),
+                    const Color(0xFF0A2050).withValues(alpha: 0.95),
                   ],
-                  stops: [0.0, 0.4, 1.0],
+                  stops: const [0.0, 0.45, 1.0],
                 ),
-                boxShadow: _active
-                    ? [
-                        BoxShadow(
-                          color: const Color(0xFF00D4FF).withValues(alpha: 0.8),
-                          blurRadius: 20,
-                        ),
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.5),
-                          blurRadius: 8,
-                          offset: const Offset(0, -4),
-                        ),
-                      ]
-                    : [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.5),
-                          blurRadius: 8,
-                          offset: const Offset(0, -4),
-                        ),
-                        BoxShadow(
-                          color: Colors.white.withValues(alpha: 0.2),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF00D4FF).withValues(alpha: _active ? 0.9 : 0.4),
+                    blurRadius: _active ? 20 : 8,
+                  ),
+                ],
               ),
             ),
           ],
