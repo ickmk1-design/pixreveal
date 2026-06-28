@@ -14,11 +14,7 @@ workflows:
       xcode: 26
       cocoapods: default
     triggering:
-      events:
-        - push
-      branch_patterns:
-        - pattern: main
-          include: true
+      cancel_previous_builds: false
     scripts:
       - name: Set up keychain
         script: |
