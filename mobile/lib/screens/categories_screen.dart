@@ -4,7 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 import '../services/level_progress.dart';
 import '../services/audio_service.dart';
 import '../services/token_service.dart';
-import '../utils/locale_helper.dart';
 
 class CategoriesScreen extends StatelessWidget {
   const CategoriesScreen({super.key});
@@ -78,12 +77,6 @@ class _Background extends StatelessWidget {
               stops: [0.0, 0.5, 1.0],
             ),
           ),
-        ),
-        // Locale-based background (categories_tr.png / categories_en.png)
-        Image.asset(
-          localeAsset('categories'),
-          fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => const SizedBox.shrink(),
         ),
         // Üstten alta hafif karartma — okunabilirlik
         Container(
