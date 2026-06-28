@@ -194,32 +194,31 @@ class _CategoryRow extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 12),
       child: GestureDetector(
         onTap: onTap,
-        child: SizedBox(
-          height: 80,
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              _RowPlate(),
-              // ── İçerik ───────────────────────────────────────
-              Row(
-                children: [
-                  // Thumbnail
-                  _Thumbnail(category: category),
-                  const SizedBox(width: 16),
-                  // Kategori adı
-                  Expanded(child: _CategoryLabel(category: category)),
-                  // Ok ikonu
-                  Padding(
-                    padding: const EdgeInsets.only(right: 16),
-                    child: Icon(
-                      Icons.chevron_right,
-                      color: const Color(0xFF00D4FF).withValues(alpha: 0.8),
-                      size: 28,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(13),
+          child: SizedBox(
+            height: 80,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                _RowPlate(),
+                Row(
+                  children: [
+                    _Thumbnail(category: category),
+                    const SizedBox(width: 16),
+                    Expanded(child: _CategoryLabel(category: category)),
+                    Padding(
+                      padding: const EdgeInsets.only(right: 16),
+                      child: Icon(
+                        Icons.chevron_right,
+                        color: const Color(0xFF00D4FF).withValues(alpha: 0.8),
+                        size: 28,
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -232,11 +231,16 @@ class _RowPlate extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        image: DecorationImage(
-          image: AssetImage('assets/images/row_plate.png'),
-          fit: BoxFit.fill,
-          centerSlice: Rect.fromLTRB(40, 20, 41, 21),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(13),
+        gradient: const LinearGradient(
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+          colors: [Color(0xFF0D1B3E), Color(0xFF091228)],
+        ),
+        border: Border.all(
+          color: const Color(0xFF00D4FF).withValues(alpha: 0.35),
+          width: 1.2,
         ),
       ),
     );
