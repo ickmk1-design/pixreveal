@@ -85,7 +85,7 @@ workflows:
     publishing:
       email:
         recipients:
-          - info@cytbilisim.com
+          - ickmk1@gmail.com
         notify:
           success: true
           failure: true
