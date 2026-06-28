@@ -59,9 +59,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                     ),
                   ),
-                  _toggleWidget(size, yCenter: 30, value: sfx),
-                  _toggleWidget(size, yCenter: 40, value: music),
-                  _toggleWidget(size, yCenter: 48, value: vibration),
+                  _toggleWidget(size, yCenter: 30.3, value: sfx),
+                  _toggleWidget(size, yCenter: 38.4, value: music),
+                  _toggleWidget(size, yCenter: 46.6, value: vibration),
                 ],
               ),
             ),
@@ -72,11 +72,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _toggleWidget(Size size, {required double yCenter, required bool value}) {
-    const double tw = 56.0;
-    const double th = 28.0;
+    // Ölçülen değerler: track sol=786/1024=0.7676, genişlik=178/1024=0.1738, yükseklik=75/1536=0.0488
+    final double tw = size.width * 0.1738;
+    final double th = size.height * 0.0488;
     const double kw = 22.0;
     return Positioned(
-      left: size.width * 0.89 - tw / 2,
+      left: size.width * 0.7676,
       top: size.height * yCenter / 100 - th / 2,
       width: tw,
       height: th,
