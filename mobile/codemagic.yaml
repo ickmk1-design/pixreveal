@@ -67,7 +67,7 @@ workflows:
       - name: Build IPA
         script: |
           cd mobile
-          flutter build ipa --release 2>&1 | tee /tmp/flutter_build.log
+          flutter build ipa --release --export-options-plist ios/ExportOptions.plist 2>&1 | tee /tmp/flutter_build.log
           BUILD_EXIT=${PIPESTATUS[0]}
           if [ $BUILD_EXIT -ne 0 ]; then
             echo "=== BUILD FAILED — LAST 300 LINES ==="
