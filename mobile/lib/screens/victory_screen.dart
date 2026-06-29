@@ -69,10 +69,10 @@ class VictoryScreen extends StatelessWidget {
               ),
             ),
 
-            // SCORE — x=46.3%, y=60.4%
+            // SCORE
             Positioned(
-              left: size.width * 0.463,
-              top: size.height * 0.582,
+              left: size.width  * (isTurkish() ? 0.35 : 0.463),
+              top:  size.height * (isTurkish() ? 0.640 : 0.582),
               width: size.width * 0.40,
               height: size.height * 0.045,
               child: IgnorePointer(
@@ -90,10 +90,10 @@ class VictoryScreen extends StatelessWidget {
               ),
             ),
 
-            // COMBO — x=56.3%, y=65.0%
+            // COMBO
             Positioned(
-              left: size.width * 0.563,
-              top: size.height * 0.633,
+              left: size.width  * (isTurkish() ? 0.60 : 0.563),
+              top:  size.height * (isTurkish() ? 0.693 : 0.633),
               width: size.width * 0.30,
               height: size.height * 0.035,
               child: IgnorePointer(
@@ -111,10 +111,10 @@ class VictoryScreen extends StatelessWidget {
               ),
             ),
 
-            // TIME — x=40.0%, y=69.9%
+            // TIME
             Positioned(
-              left: size.width * 0.400,
-              top: size.height * 0.684,
+              left: size.width  * (isTurkish() ? 0.32 : 0.400),
+              top:  size.height * (isTurkish() ? 0.745 : 0.684),
               width: size.width * 0.30,
               height: size.height * 0.030,
               child: IgnorePointer(
