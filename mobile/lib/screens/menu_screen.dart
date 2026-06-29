@@ -17,7 +17,7 @@ class MenuScreen extends StatelessWidget {
         child: ValueListenableBuilder<int>(
           valueListenable: TokenService.instance.notifier,
           builder: (_, balance, __) => MockupScreen(
-            screen: 'menu',
+            screen: isTurkish() ? 'menu_tr' : 'menu',
             assetPath: localeAsset('menu'),
             onNavigate: (target, id) => _navigate(context, target),
             overlayBuilder: (size) => [

@@ -19,13 +19,20 @@ class Hotspot {
 /// derived from the actual tap coordinates Ibo provided after tapping
 /// the exact center of each button.
 const Map<String, List<Hotspot>> kHotspots = {
-  // ─── MENU ─────────────────────────────────────────────────────
-  // play center y=54.5, shop y=67.5, settings y=76.3, coin y=2.5
+  // ─── MENU EN ──────────────────────────────────────────────────
   'menu': [
     Hotspot(id: 'coins',    x: 64, y: 0,   w: 36, h: 6,  target: 'shop',       label: 'Jeton'),
-    Hotspot(id: 'play',     x: 18, y: 49,  w: 64, h: 11, target: 'categories', label: 'OYNA'),
-    Hotspot(id: 'shop',     x: 22, y: 64,  w: 56, h: 8,  target: 'shop',       label: 'MAĞAZA'),
-    Hotspot(id: 'settings', x: 22, y: 73,  w: 56, h: 8,  target: 'settings',   label: 'AYARLAR'),
+    Hotspot(id: 'play',     x: 18, y: 49,  w: 64, h: 11, target: 'categories', label: 'PLAY'),
+    Hotspot(id: 'shop',     x: 22, y: 64,  w: 56, h: 8,  target: 'shop',       label: 'SHOP'),
+    Hotspot(id: 'settings', x: 22, y: 73,  w: 56, h: 8,  target: 'settings',   label: 'SETTINGS'),
+  ],
+
+  // ─── MENU TR (butonlar ~5% daha yukarıda) ─────────────────────
+  'menu_tr': [
+    Hotspot(id: 'coins',    x: 64, y: 0,   w: 36, h: 6,  target: 'shop',       label: 'Jeton'),
+    Hotspot(id: 'play',     x: 18, y: 50,  w: 64, h: 12, target: 'categories', label: 'OYNA'),
+    Hotspot(id: 'shop',     x: 22, y: 62,  w: 56, h: 8,  target: 'shop',       label: 'MAĞAZA'),
+    Hotspot(id: 'settings', x: 22, y: 71,  w: 56, h: 8,  target: 'settings',   label: 'AYARLAR'),
   ],
 
   // categories: native ekrana geçildi — hotspot listesi kaldırıldı (kalibrasyon yok).

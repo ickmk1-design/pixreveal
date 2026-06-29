@@ -73,16 +73,24 @@ class _ShopScreenState extends State<ShopScreen> {
 
   List<Widget> _buildPriceOverlays(Size size) {
     final style = GoogleFonts.rajdhani(
-      fontSize: size.width * 0.035,
-      fontWeight: FontWeight.w700,
-      color: const Color(0xFF1A0A00),
+      fontSize: size.width * 0.038,
+      fontWeight: FontWeight.w800,
+      color: const Color(0xFF3D2800),
+      shadows: const [
+        Shadow(color: Color(0x55000000), blurRadius: 2, offset: Offset(0, 1)),
+      ],
     );
 
-    Widget label(double xPct, double yPct, double wPct, String text) => Positioned(
+    // xPct/yPct = button top-left, wPct/hPct = button size — text centered inside
+    Widget btn(double xPct, double yPct, double wPct, double hPct, String text) =>
+        Positioned(
           left: size.width * xPct / 100,
           top: size.height * yPct / 100,
           width: size.width * wPct / 100,
-          child: Text(text, style: style, textAlign: TextAlign.center),
+          height: size.height * hPct / 100,
+          child: Center(
+            child: Text(text, style: style, textAlign: TextAlign.center),
+          ),
         );
 
     final p20  = _price(20);
@@ -91,12 +99,15 @@ class _ShopScreenState extends State<ShopScreen> {
     final p300 = _price(300);
     final p750 = _price(750);
 
+    // Button areas (bottom ~4% of each card):
+    // 3-card row cards: y=23-41% → buttons at y=37-41%
+    // 2-card row cards: y=43-61% → buttons at y=57-61%
     return [
-      if (p20.isNotEmpty)  label(2,  38.5, 31, p20),
-      if (p50.isNotEmpty)  label(35, 38.5, 30, p50),
-      if (p120.isNotEmpty) label(67, 38.5, 31, p120),
-      if (p300.isNotEmpty) label(2,  56.5, 46, p300),
-      if (p750.isNotEmpty) label(51, 56.5, 47, p750),
+      if (p20.isNotEmpty)  btn(2,  37, 31, 4, p20),
+      if (p50.isNotEmpty)  btn(35, 37, 30, 4, p50),
+      if (p120.isNotEmpty) btn(67, 37, 31, 4, p120),
+      if (p300.isNotEmpty) btn(2,  57, 46, 4, p300),
+      if (p750.isNotEmpty) btn(51, 57, 47, 4, p750),
     ];
   }
 
