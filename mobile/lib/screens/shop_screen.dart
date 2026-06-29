@@ -107,15 +107,13 @@ class _ShopScreenState extends State<ShopScreen> {
     final p300 = _price(300);
     final p750 = _price(750);
 
-    // Button areas (bottom ~4% of each card):
-    // 3-card row cards: y=23-41% → buttons at y=37-41%
-    // 2-card row cards: y=43-61% → buttons at y=57-61%
+    // Button areas (PIL-measured): 3-card row y=42-46, 2-card row y=62-66
     return [
-      if (p20.isNotEmpty)  btn(2,  37, 31, 4, p20),
-      if (p50.isNotEmpty)  btn(35, 37, 30, 4, p50),
-      if (p120.isNotEmpty) btn(67, 37, 31, 4, p120),
-      if (p300.isNotEmpty) btn(2,  57, 46, 4, p300),
-      if (p750.isNotEmpty) btn(51, 57, 47, 4, p750),
+      if (p20.isNotEmpty)  btn(2,  42, 31, 4, p20),
+      if (p50.isNotEmpty)  btn(35, 42, 30, 4, p50),
+      if (p120.isNotEmpty) btn(67, 42, 31, 4, p120),
+      if (p300.isNotEmpty) btn(2,  62, 46, 4, p300),
+      if (p750.isNotEmpty) btn(51, 62, 47, 4, p750),
     ];
   }
 
