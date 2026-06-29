@@ -79,9 +79,9 @@ const Map<String, List<Hotspot>> kHotspots = {
     Hotspot(id: 'sfx',     x: 5, y: 26.3, w: 90, h: 8, target: 'toggle-sfx',       label: 'SFX'),
     Hotspot(id: 'music',   x: 5, y: 34.4, w: 90, h: 8, target: 'toggle-music',     label: 'Music'),
     Hotspot(id: 'vibe',    x: 5, y: 42.6, w: 90, h: 8, target: 'toggle-vibration', label: 'Vibe'),
-    Hotspot(id: 'restore', x: 6,  y: 46, w: 88, h: 9, target: 'none',             label: 'Restore'),
-    Hotspot(id: 'privacy', x: 4,  y: 62, w: 92, h: 7, target: 'none',             label: 'Privacy'),
-    Hotspot(id: 'terms',   x: 4,  y: 70, w: 92, h: 7, target: 'none',             label: 'Terms'),
+    Hotspot(id: 'restore', x: 6,  y: 58, w: 88, h: 8, target: 'none',             label: 'Restore'),
+    Hotspot(id: 'privacy', x: 4,  y: 73, w: 92, h: 7, target: 'none',             label: 'Privacy'),
+    Hotspot(id: 'terms',   x: 4,  y: 81, w: 92, h: 8, target: 'none',             label: 'Terms'),
   ],
 
   'countdown': [],
