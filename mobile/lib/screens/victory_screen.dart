@@ -54,10 +54,10 @@ class VictoryScreen extends StatelessWidget {
           overlayBuilder: (size) => [
             // Kategori resmi
             Positioned(
-              left: size.width * 0.253,
-              top: size.height * 0.314,
-              width: size.width * 0.470,
-              height: size.height * 0.234,
+              left: size.width * (isTurkish() ? 0.237 : 0.253),
+              top: size.height * (isTurkish() ? 0.312 : 0.314),
+              width: size.width * (isTurkish() ? 0.476 : 0.470),
+              height: size.height * (isTurkish() ? 0.225 : 0.234),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(16),
                 child: Image.asset(
@@ -71,8 +71,8 @@ class VictoryScreen extends StatelessWidget {
 
             // SCORE
             Positioned(
-              left: size.width  * (isTurkish() ? 0.35 : 0.463),
-              top:  size.height * (isTurkish() ? 0.590 : 0.582),
+              left: size.width  * (isTurkish() ? 0.43 : 0.463),
+              top:  size.height * (isTurkish() ? 0.573 : 0.582),
               width: size.width * 0.40,
               height: size.height * 0.045,
               child: IgnorePointer(
@@ -92,8 +92,8 @@ class VictoryScreen extends StatelessWidget {
 
             // COMBO
             Positioned(
-              left: size.width  * (isTurkish() ? 0.60 : 0.563),
-              top:  size.height * (isTurkish() ? 0.645 : 0.633),
+              left: size.width  * (isTurkish() ? 0.57 : 0.563),
+              top:  size.height * (isTurkish() ? 0.632 : 0.633),
               width: size.width * 0.30,
               height: size.height * 0.035,
               child: IgnorePointer(
@@ -113,8 +113,8 @@ class VictoryScreen extends StatelessWidget {
 
             // TIME
             Positioned(
-              left: size.width  * (isTurkish() ? 0.32 : 0.400),
-              top:  size.height * (isTurkish() ? 0.700 : 0.684),
+              left: size.width  * (isTurkish() ? 0.42 : 0.400),
+              top:  size.height * (isTurkish() ? 0.685 : 0.684),
               width: size.width * 0.30,
               height: size.height * 0.030,
               child: IgnorePointer(
