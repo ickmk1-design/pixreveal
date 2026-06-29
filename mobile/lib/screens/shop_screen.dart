@@ -111,11 +111,11 @@ class _ShopScreenState extends State<ShopScreen> {
     // 3-card: 9.5-31.6%, 39.3-60.6%, 68.0-89.7%
     // 2-card: 22.1-45.5%, 53.9-77.4%
     return [
-      if (p20.isNotEmpty)  btn(9.5, 42, 22, 4, p20),
-      if (p50.isNotEmpty)  btn(39,  42, 22, 4, p50),
-      if (p120.isNotEmpty) btn(68,  42, 22, 4, p120),
-      if (p300.isNotEmpty) btn(22,  62, 24, 4, p300),
-      if (p750.isNotEmpty) btn(54,  62, 24, 4, p750),
+      if (p20.isNotEmpty)  btn(9.5, 44, 22, 4, p20),
+      if (p50.isNotEmpty)  btn(39,  44, 22, 4, p50),
+      if (p120.isNotEmpty) btn(68,  44, 22, 4, p120),
+      if (p300.isNotEmpty) btn(22,  64, 24, 4, p300),
+      if (p750.isNotEmpty) btn(54,  64, 24, 4, p750),
     ];
   }
 
