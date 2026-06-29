@@ -203,8 +203,7 @@ class PixRevealGame extends FlameGame with KeyboardEvents {
     // Enemy vs trail/player collision (only while drawing)
     if (player.isDrawing) {
       for (final e in enemies) {
-        final (ec, er) = grid.toGrid(e.position.x, e.position.y);
-        if (grid.touchesTrail(ec, er)) { _die(); return; }
+        if (grid.touchesTrailPx(e.position.x, e.position.y, e.radius)) { _die(); return; }
         final dx = e.position.x - player.position.x;
         final dy = e.position.y - player.position.y;
         if (sqrt(dx * dx + dy * dy) < e.radius + GameConstants.playerSize / 2) {

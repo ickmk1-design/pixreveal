@@ -163,14 +163,24 @@ class GameGrid extends Component {
       return;
     }
 
-    // Find which region contains the enemy
+    // Find which region contains the enemy — search a 7-cell radius to handle
+    // enemies snapped to border cells (toGrid clamps to boundary).
     int enemyRegionIdx = -1;
     for (final (ec, er) in enemyGridPos) {
-      final ek = er * gridCols + ec;
-      for (int i = 0; i < regions.length; i++) {
-        if (regions[i].contains(ek)) {
-          enemyRegionIdx = i;
-          break;
+      outer:
+      for (int radius = 0; radius <= 7; radius++) {
+        for (int dr = -radius; dr <= radius; dr++) {
+          for (int dc = -radius; dc <= radius; dc++) {
+            if (dr.abs() != radius && dc.abs() != radius) continue;
+            final nc = ec + dc, nr = er + dr;
+            final ek = nr * gridCols + nc;
+            for (int i = 0; i < regions.length; i++) {
+              if (regions[i].contains(ek)) {
+                enemyRegionIdx = i;
+                break outer;
+              }
+            }
+          }
         }
       }
       if (enemyRegionIdx >= 0) break;
@@ -179,7 +189,7 @@ class GameGrid extends Component {
     debugPrint('  Enemy in region: $enemyRegionIdx');
 
     if (enemyRegionIdx >= 0) {
-      // Enemy found in a region → KEEP that region, CLAIM all others
+      // Enemy found → KEEP that region, CLAIM all others
       for (int i = 0; i < regions.length; i++) {
         if (i == enemyRegionIdx) {
           debugPrint('  -> KEEP region $i (${regions[i].length} cells, has enemy)');
@@ -189,14 +199,14 @@ class GameGrid extends Component {
         }
       }
     } else {
-      // Enemy not found in any region → keep LARGEST, claim rest
+      // Still not found (enemy fully outside all regions) → keep LARGEST, claim rest
       int largestIdx = 0;
       for (int i = 1; i < regions.length; i++) {
         if (regions[i].length > regions[largestIdx].length) largestIdx = i;
       }
       for (int i = 0; i < regions.length; i++) {
         if (i == largestIdx) {
-          debugPrint('  -> KEEP region $i (${regions[i].length} cells, largest, no enemy found)');
+          debugPrint('  -> KEEP region $i (${regions[i].length} cells, largest)');
         } else {
           debugPrint('  -> CLAIM region $i (${regions[i].length} cells)');
           _claimRegion(regions[i]);
@@ -256,6 +266,24 @@ class GameGrid extends Component {
     for (int dr = -1; dr <= 1; dr++) {
       for (int dc = -1; dc <= 1; dc++) {
         if (get(ec + dc, er + dr) == CellState.trail) return true;
+      }
+    }
+    return false;
+  }
+
+  /// Precise circle-vs-trail-cell collision: returns true when the circle
+  /// (center ex,ey radius=radius) overlaps any trail cell rectangle.
+  bool touchesTrailPx(double ex, double ey, double radius) {
+    final r2 = radius * radius;
+    for (int r = 0; r < gridRows; r++) {
+      for (int c = 0; c < gridCols; c++) {
+        if (cells[r][c] != CellState.trail) continue;
+        final cellLeft = bounds.left + c * cellW;
+        final cellTop  = bounds.top  + r * cellH;
+        final nearX = ex.clamp(cellLeft, cellLeft + cellW);
+        final nearY = ey.clamp(cellTop,  cellTop  + cellH);
+        final dx = ex - nearX, dy = ey - nearY;
+        if (dx * dx + dy * dy < r2) return true;
       }
     }
     return false;
