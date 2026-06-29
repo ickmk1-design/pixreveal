@@ -62,13 +62,21 @@ class _ShopScreenState extends State<ShopScreen> {
     );
   }
 
+  static const Map<int, String> _mockPrices = {
+    20: '₺29,99',
+    50: '₺59,99',
+    120: '₺119,99',
+    300: '₺249,99',
+    750: '₺549,99',
+  };
+
   String _price(int amount) {
     final key = 'token_$amount';
     final pkg = _offerings?.current?.getPackage(key)
         ?? _offerings?.current?.availablePackages
             .where((p) => p.identifier == key)
             .firstOrNull;
-    return pkg?.storeProduct.priceString ?? '';
+    return pkg?.storeProduct.priceString ?? _mockPrices[amount] ?? '';
   }
 
   List<Widget> _buildPriceOverlays(Size size) {
