@@ -46,7 +46,7 @@ class _GameoverScreenState extends State<GameoverScreen> {
           overlayBuilder: (size) => [
             Positioned(
               left: size.width * 0.14,
-              top: size.height * (isTurkish() ? 0.625 : 0.54),
+              top: size.height * (isTurkish() ? 0.555 : 0.54),
               width: size.width * 0.72,
               height: size.height * 0.09,
               child: IgnorePointer(

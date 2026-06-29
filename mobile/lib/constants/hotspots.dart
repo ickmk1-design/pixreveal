@@ -44,11 +44,11 @@ const Map<String, List<Hotspot>> kHotspots = {
     Hotspot(id: 'quit',      x: 28, y: 77, w: 44, h: 6, target: 'menu',  label: 'ÇIK'),
   ],
 
-  // ─── GAME OVER TR (orange buton y=62-72, blue y=73-83, çıkış y=85-91)
+  // ─── GAME OVER TR (yeni PNG — oka göre buton y=54-63, blue y=64-73, çıkış y=77)
   'gameover_tr': [
-    Hotspot(id: 'use-token', x: 8,  y: 62, w: 84, h: 10, target: 'retry', label: '5 TOKEN'),
-    Hotspot(id: 'watch-ad',  x: 8,  y: 73, w: 84, h: 10, target: 'retry', label: 'REKLAM'),
-    Hotspot(id: 'quit',      x: 25, y: 85, w: 50, h:  6, target: 'menu',  label: 'ÇIK'),
+    Hotspot(id: 'use-token', x: 8,  y: 54, w: 84, h: 10, target: 'retry', label: '5 TOKEN'),
+    Hotspot(id: 'watch-ad',  x: 8,  y: 65, w: 84, h: 10, target: 'retry', label: 'REKLAM'),
+    Hotspot(id: 'quit',      x: 25, y: 77, w: 50, h:  6, target: 'menu',  label: 'ÇIK'),
   ],
 
   // ─── VICTORY (calibrated 2026-06-25) ─────────────────────────
