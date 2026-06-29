@@ -6,3 +6,6 @@ String localeAsset(String base) {
   final suffix = lang == 'tr' ? 'tr' : 'en';
   return 'assets/images/${base}_$suffix.png';
 }
+
+bool isTurkish() =>
+    ui.PlatformDispatcher.instance.locale.languageCode == 'tr';

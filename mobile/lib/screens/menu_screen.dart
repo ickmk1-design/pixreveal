@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../widgets/mockup_screen.dart';
 import '../services/audio_service.dart';
 import '../services/token_service.dart';
+import '../utils/locale_helper.dart';
 
 class MenuScreen extends StatelessWidget {
   const MenuScreen({super.key});
@@ -17,7 +18,7 @@ class MenuScreen extends StatelessWidget {
           valueListenable: TokenService.instance.notifier,
           builder: (_, balance, __) => MockupScreen(
             screen: 'menu',
-            assetPath: 'assets/images/menu.png',
+            assetPath: localeAsset('menu'),
             onNavigate: (target, id) => _navigate(context, target),
             overlayBuilder: (size) => [
               Positioned(

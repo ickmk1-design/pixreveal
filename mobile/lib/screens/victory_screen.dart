@@ -4,6 +4,7 @@ import '../widgets/mockup_screen.dart';
 import '../services/level_progress.dart';
 import '../services/audio_service.dart';
 import '../services/ad_service.dart';
+import '../utils/locale_helper.dart';
 
 class VictoryScreen extends StatelessWidget {
   final int levelId;
@@ -47,7 +48,7 @@ class VictoryScreen extends StatelessWidget {
       body: SafeArea(
         child: MockupScreen(
           screen: 'victory',
-          assetPath: 'assets/images/victory.png',
+          assetPath: localeAsset('victory'),
           calibrateMode: false,
           onNavigate: (target, id) => _navigate(context, target),
           overlayBuilder: (size) => [

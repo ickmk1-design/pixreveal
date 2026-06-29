@@ -6,6 +6,7 @@ import '../services/audio_service.dart';
 import '../services/lives_service.dart';
 import '../services/ad_service.dart';
 import '../services/token_service.dart';
+import '../utils/locale_helper.dart';
 
 class GameoverScreen extends StatefulWidget {
   final int levelId;
@@ -35,7 +36,7 @@ class _GameoverScreenState extends State<GameoverScreen> {
       body: SafeArea(
         child: MockupScreen(
           screen: 'gameover',
-          assetPath: 'assets/images/gameover.png',
+          assetPath: localeAsset('gameover'),
           showBackButton: true,
           onBack: () {
             AudioService.play('button_click');
@@ -61,7 +62,7 @@ class _GameoverScreenState extends State<GameoverScreen> {
                       ),
                       SizedBox(width: size.width * 0.02),
                       Text(
-                        'USE $continueCost TOKENS',
+                        isTurkish() ? '$continueCost TOKEN KULLAN' : 'USE $continueCost TOKENS',
                         style: TextStyle(
                           fontSize: size.height * 0.024,
                           fontWeight: FontWeight.w900,
