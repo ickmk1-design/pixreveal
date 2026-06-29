@@ -63,11 +63,11 @@ class _ShopScreenState extends State<ShopScreen> {
   }
 
   static const Map<int, String> _mockPrices = {
-    20: '₺29,99',
-    50: '₺59,99',
-    120: '₺119,99',
-    300: '₺249,99',
-    750: '₺549,99',
+    20: '29,99',
+    50: '59,99',
+    120: '119,99',
+    300: '249,99',
+    750: '549,99',
   };
 
   String _price(int amount) {
@@ -81,11 +81,11 @@ class _ShopScreenState extends State<ShopScreen> {
 
   List<Widget> _buildPriceOverlays(Size size) {
     final style = GoogleFonts.rajdhani(
-      fontSize: size.width * 0.038,
-      fontWeight: FontWeight.w800,
-      color: const Color(0xFF3D2800),
+      fontSize: size.width * 0.044,
+      fontWeight: FontWeight.w900,
+      color: const Color(0xFF2A1500),
       shadows: const [
-        Shadow(color: Color(0x55000000), blurRadius: 2, offset: Offset(0, 1)),
+        Shadow(color: Color(0x66000000), blurRadius: 3, offset: Offset(0, 1)),
       ],
     );
 
@@ -107,13 +107,15 @@ class _ShopScreenState extends State<ShopScreen> {
     final p300 = _price(300);
     final p750 = _price(750);
 
-    // Button areas (PIL-measured): 3-card row y=42-46, 2-card row y=62-66
+    // PIL-measured exact button x-ranges:
+    // 3-card: 9.5-31.6%, 39.3-60.6%, 68.0-89.7%
+    // 2-card: 22.1-45.5%, 53.9-77.4%
     return [
-      if (p20.isNotEmpty)  btn(2,  42, 31, 4, p20),
-      if (p50.isNotEmpty)  btn(35, 42, 30, 4, p50),
-      if (p120.isNotEmpty) btn(67, 42, 31, 4, p120),
-      if (p300.isNotEmpty) btn(2,  62, 46, 4, p300),
-      if (p750.isNotEmpty) btn(51, 62, 47, 4, p750),
+      if (p20.isNotEmpty)  btn(9.5, 42, 22, 4, p20),
+      if (p50.isNotEmpty)  btn(39,  42, 22, 4, p50),
+      if (p120.isNotEmpty) btn(68,  42, 22, 4, p120),
+      if (p300.isNotEmpty) btn(22,  62, 24, 4, p300),
+      if (p750.isNotEmpty) btn(54,  62, 24, 4, p750),
     ];
   }
 
