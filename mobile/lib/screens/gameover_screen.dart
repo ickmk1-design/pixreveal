@@ -44,40 +44,65 @@ class _GameoverScreenState extends State<GameoverScreen> {
           },
           onNavigate: (target, id) => _navigate(context, target, id),
           overlayBuilder: (size) => [
-            Positioned(
-              left: size.width * 0.14,
-              top: size.height * 0.54,
-              width: size.width * 0.72,
-              height: size.height * 0.09,
-              child: IgnorePointer(
-                child: Center(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Image.asset(
-                        'assets/ui/coin_icon.png',
-                        width: size.height * 0.040,
-                        height: size.height * 0.040,
+            // TR PNG'de coin ikonu zaten çizili ve buton daha aşağıda
+            if (isTurkish())
+              Positioned(
+                left: size.width * 0.26,
+                top: size.height * 0.625,
+                width: size.width * 0.60,
+                height: size.height * 0.09,
+                child: IgnorePointer(
+                  child: Center(
+                    child: Text(
+                      '$continueCost TOKEN KULLAN',
+                      style: TextStyle(
+                        fontSize: size.height * 0.024,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                        letterSpacing: 0.5,
+                        shadows: const [
+                          Shadow(color: Colors.black, blurRadius: 6, offset: Offset(0, 2)),
+                        ],
                       ),
-                      SizedBox(width: size.width * 0.02),
-                      Text(
-                        isTurkish() ? '$continueCost TOKEN KULLAN' : 'USE $continueCost TOKENS',
-                        style: TextStyle(
-                          fontSize: size.height * 0.024,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white,
-                          letterSpacing: 0.5,
-                          shadows: const [
-                            Shadow(color: Colors.black, blurRadius: 6, offset: Offset(0, 2)),
-                          ],
+                    ),
+                  ),
+                ),
+              )
+            else
+              Positioned(
+                left: size.width * 0.14,
+                top: size.height * 0.54,
+                width: size.width * 0.72,
+                height: size.height * 0.09,
+                child: IgnorePointer(
+                  child: Center(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.asset(
+                          'assets/ui/coin_icon.png',
+                          width: size.height * 0.040,
+                          height: size.height * 0.040,
                         ),
-                      ),
-                    ],
+                        SizedBox(width: size.width * 0.02),
+                        Text(
+                          'USE $continueCost TOKENS',
+                          style: TextStyle(
+                            fontSize: size.height * 0.024,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                            letterSpacing: 0.5,
+                            shadows: const [
+                              Shadow(color: Colors.black, blurRadius: 6, offset: Offset(0, 2)),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
           ],
         ),
       ),
