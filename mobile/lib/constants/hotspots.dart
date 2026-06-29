@@ -37,11 +37,18 @@ const Map<String, List<Hotspot>> kHotspots = {
     Hotspot(id: 'pu-shield', x: 81, y: 55.5, w: 14, h: 7.5, target: 'none', label: 'Shield'),
   ],
 
-  // ─── GAME OVER (estimate — Ibo couldn't test live) ────────────
+  // ─── GAME OVER EN ─────────────────────────────────────────────
   'gameover': [
     Hotspot(id: 'use-token', x: 14, y: 54, w: 72, h: 9, target: 'retry', label: '1 JETON'),
     Hotspot(id: 'watch-ad',  x: 14, y: 65, w: 72, h: 9, target: 'retry', label: 'REKLAM'),
     Hotspot(id: 'quit',      x: 28, y: 77, w: 44, h: 6, target: 'menu',  label: 'ÇIK'),
+  ],
+
+  // ─── GAME OVER TR (orange buton y=62-72, blue y=73-83, çıkış y=85-91)
+  'gameover_tr': [
+    Hotspot(id: 'use-token', x: 8,  y: 62, w: 84, h: 10, target: 'retry', label: '5 TOKEN'),
+    Hotspot(id: 'watch-ad',  x: 8,  y: 73, w: 84, h: 10, target: 'retry', label: 'REKLAM'),
+    Hotspot(id: 'quit',      x: 25, y: 85, w: 50, h:  6, target: 'menu',  label: 'ÇIK'),
   ],
 
   // ─── VICTORY (calibrated 2026-06-25) ─────────────────────────

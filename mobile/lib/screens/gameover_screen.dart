@@ -35,7 +35,7 @@ class _GameoverScreenState extends State<GameoverScreen> {
       backgroundColor: const Color(0xFF050510),
       body: SafeArea(
         child: MockupScreen(
-          screen: 'gameover',
+          screen: isTurkish() ? 'gameover_tr' : 'gameover',
           assetPath: localeAsset('gameover'),
           showBackButton: true,
           onBack: () {
