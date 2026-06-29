@@ -107,15 +107,15 @@ class _ShopScreenState extends State<ShopScreen> {
     final p300 = _price(300);
     final p750 = _price(750);
 
-    // PIL-measured exact button x-ranges:
-    // 3-card: 9.5-31.6%, 39.3-60.6%, 68.0-89.7%
-    // 2-card: 22.1-45.5%, 53.9-77.4%
+    // TR positions correct as-is; EN buttons are 3% higher in PNG
+    final topY = isTurkish() ? 43.0 : 40.4;
+    final botY = isTurkish() ? 63.0 : 59.8;
     return [
-      if (p20.isNotEmpty)  btn(9.5, 43, 22, 4, p20),
-      if (p50.isNotEmpty)  btn(39,  43, 22, 4, p50),
-      if (p120.isNotEmpty) btn(68,  43, 22, 4, p120),
-      if (p300.isNotEmpty) btn(22,  63, 24, 4, p300),
-      if (p750.isNotEmpty) btn(54,  63, 24, 4, p750),
+      if (p20.isNotEmpty)  btn(9.5, topY, 22, 4, p20),
+      if (p50.isNotEmpty)  btn(39,  topY, 22, 4, p50),
+      if (p120.isNotEmpty) btn(68,  topY, 22, 4, p120),
+      if (p300.isNotEmpty) btn(22,  botY, 24, 4, p300),
+      if (p750.isNotEmpty) btn(54,  botY, 24, 4, p750),
     ];
   }
 
