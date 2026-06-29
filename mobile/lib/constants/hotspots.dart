@@ -27,12 +27,12 @@ const Map<String, List<Hotspot>> kHotspots = {
     Hotspot(id: 'settings', x: 22, y: 73,  w: 56, h: 8,  target: 'settings',   label: 'SETTINGS'),
   ],
 
-  // ─── MENU TR (butonlar ~5% daha yukarıda) ─────────────────────
+  // ─── MENU TR (PIL ölçüm: OYNA pink 55-65, MAĞAZA white 73-74, AYARLAR white 83)
   'menu_tr': [
     Hotspot(id: 'coins',    x: 64, y: 0,   w: 36, h: 6,  target: 'shop',       label: 'Jeton'),
-    Hotspot(id: 'play',     x: 18, y: 50,  w: 64, h: 12, target: 'categories', label: 'OYNA'),
-    Hotspot(id: 'shop',     x: 22, y: 62,  w: 56, h: 8,  target: 'shop',       label: 'MAĞAZA'),
-    Hotspot(id: 'settings', x: 22, y: 71,  w: 56, h: 8,  target: 'settings',   label: 'AYARLAR'),
+    Hotspot(id: 'play',     x: 18, y: 53,  w: 64, h: 14, target: 'categories', label: 'OYNA'),
+    Hotspot(id: 'shop',     x: 22, y: 68,  w: 56, h: 10, target: 'shop',       label: 'MAĞAZA'),
+    Hotspot(id: 'settings', x: 22, y: 79,  w: 56, h: 10, target: 'settings',   label: 'AYARLAR'),
   ],
 
   // categories: native ekrana geçildi — hotspot listesi kaldırıldı (kalibrasyon yok).
@@ -58,12 +58,18 @@ const Map<String, List<Hotspot>> kHotspots = {
     Hotspot(id: 'quit',      x: 20, y: 82, w: 60, h: 10, target: 'menu',  label: 'ÇIK'),
   ],
 
-  // ─── VICTORY (calibrated 2026-06-25) ─────────────────────────
-  // next: center x=40.8, y=79.1 | retry: center x=32.8, y=88.0 | menu: center x=62.1, y=87.7
+  // ─── VICTORY EN (PIL: SONRAKİ pink 76-82, TEKRAR/MENÜ white 87) ───
   'victory': [
-    Hotspot(id: 'next',  x: 8,    y: 75.5, w: 66, h: 7.5, target: 'next-level', label: 'SONRAKİ'),
-    Hotspot(id: 'retry', x: 18,   y: 84.5, w: 30, h: 7.0, target: 'retry',      label: 'TEKRAR'),
-    Hotspot(id: 'menu',  x: 48,   y: 84.5, w: 30, h: 7.0, target: 'menu',       label: 'MENÜ'),
+    Hotspot(id: 'next',  x: 8,  y: 74,   w: 66, h: 10,  target: 'next-level', label: 'SONRAKİ'),
+    Hotspot(id: 'retry', x: 18, y: 84,   w: 30, h: 8.0, target: 'retry',      label: 'TEKRAR'),
+    Hotspot(id: 'menu',  x: 48, y: 84,   w: 30, h: 8.0, target: 'menu',       label: 'MENÜ'),
+  ],
+
+  // ─── VICTORY TR (PIL: SONRAKİ pink 78-85, TEKRAR/MENÜ white 90-92) ─
+  'victory_tr': [
+    Hotspot(id: 'next',  x: 8,  y: 76,   w: 66, h: 12,  target: 'next-level', label: 'SONRAKİ'),
+    Hotspot(id: 'retry', x: 18, y: 87,   w: 30, h: 8.0, target: 'retry',      label: 'TEKRAR'),
+    Hotspot(id: 'menu',  x: 48, y: 87,   w: 30, h: 8.0, target: 'menu',       label: 'MENÜ'),
   ],
 
   // ─── SHOP (new design: 5 token packs + 4 themes) ─────────────

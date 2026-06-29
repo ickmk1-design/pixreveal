@@ -47,7 +47,7 @@ class VictoryScreen extends StatelessWidget {
       backgroundColor: const Color(0xFF050510),
       body: SafeArea(
         child: MockupScreen(
-          screen: 'victory',
+          screen: isTurkish() ? 'victory_tr' : 'victory',
           assetPath: localeAsset('victory'),
           calibrateMode: false,
           onNavigate: (target, id) => _navigate(context, target),
