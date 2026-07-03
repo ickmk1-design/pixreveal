@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:app_tracking_transparency/app_tracking_transparency.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -38,33 +39,78 @@ class AdService {
 
   bool get isVip => EntitlementService.instance.isPremium;
 
-  /// Çağır: main() içinde, UMP consent sonrası.
+  /// Zorunlu sıra: ATT (iOS) → UMP (GDPR form) → MobileAds init → ad load.
+  /// Tracking izni / consent alınmadan reklam isteği GİTMEZ.
   Future<void> initialize() async {
     if (kIsWeb) return;
+    debugPrint('[AdInit] START');
+    await _requestAttPermission();
     await _requestConsent();
+    debugPrint('[AdInit] MobileAds.initialize()');
     await MobileAds.instance.initialize();
     _initialized = true;
+    debugPrint('[AdInit] DONE — loading ads');
     _loadRewarded();
     _loadInterstitial();
   }
 
-  // ── UMP + ATT consent ──────────────────────────────────────────
-  // ATT prompt iOS'ta NSUserTrackingUsageDescription (Info.plist) + bu flow ile tetiklenir.
-  // GDPR/CCPA için ConsentInformation güncellenir; ilerleyen fazda UMP form gösterimi eklenebilir.
+  // ── ATT (iOS App Tracking Transparency) ────────────────────────
+  // Popup için Info.plist'te NSUserTrackingUsageDescription şart.
+  // iOS 14.5+ cihazlarda notDetermined ise popup göster; kullanıcı yanıtını bekle.
+  Future<void> _requestAttPermission() async {
+    if (!Platform.isIOS) {
+      debugPrint('[ATT] Non-iOS platform — skip');
+      return;
+    }
+    try {
+      final current =
+          await AppTrackingTransparency.trackingAuthorizationStatus;
+      debugPrint('[ATT] Current status: $current');
+      if (current == TrackingStatus.notDetermined) {
+        // İlk kare çizilsin diye küçük gecikme (Apple önerisi).
+        await Future.delayed(const Duration(milliseconds: 250));
+        final result =
+            await AppTrackingTransparency.requestTrackingAuthorization();
+        debugPrint('[ATT] Request result: $result');
+      } else {
+        debugPrint('[ATT] Already resolved — no popup');
+      }
+    } catch (e) {
+      debugPrint('[ATT] Exception: $e');
+    }
+  }
+
+  // ── UMP (GDPR/CCPA consent) ────────────────────────────────────
+  // Info güncelle → gerekiyorsa formu yükleyip göster → devam et.
   Future<void> _requestConsent() async {
     try {
-      final done = Completer<void>();
+      final infoDone = Completer<void>();
       ConsentInformation.instance.requestConsentInfoUpdate(
         ConsentRequestParameters(),
-        () => done.complete(),
+        () {
+          debugPrint('[UMP] Consent info updated');
+          infoDone.complete();
+        },
         (error) {
-          debugPrint('UMP consent error: ${error.message}');
-          done.complete();
+          debugPrint('[UMP] requestConsentInfoUpdate error: ${error.message}');
+          infoDone.complete();
         },
       );
-      await done.future;
+      await infoDone.future;
+
+      final formDone = Completer<void>();
+      ConsentForm.loadAndShowConsentFormIfRequired((error) {
+        if (error != null) {
+          debugPrint('[UMP] loadAndShowConsentFormIfRequired error: '
+              '${error.message}');
+        } else {
+          debugPrint('[UMP] Form flow complete');
+        }
+        formDone.complete();
+      });
+      await formDone.future;
     } catch (e) {
-      debugPrint('UMP exception: $e');
+      debugPrint('[UMP] Exception: $e');
     }
   }
 

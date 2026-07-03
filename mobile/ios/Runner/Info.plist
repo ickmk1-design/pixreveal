@@ -52,7 +52,7 @@
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>NSUserTrackingUsageDescription</key>
-	<string>Bu uygulama sana daha iyi reklamlar göstermek için reklamveren verilerini kullanır.</string>
+	<string>Bu uygulama sana daha alakalı reklamlar göstermek için reklamveren verilerini kullanır. / This app uses advertiser data to show you more relevant ads.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>PixReveal needs access to your photos to let you play with your own images.</string>
 	<key>SKAdNetworkItems</key>
