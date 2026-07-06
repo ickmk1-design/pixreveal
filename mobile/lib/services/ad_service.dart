@@ -33,6 +33,13 @@ class AdService {
   InterstitialAd? _interstitial;
   bool _initialized = false;
 
+  // ── ATT / UMP izin durumu ────────────────────────────────────
+  // Default FALSE — izin doğrulanana kadar personalized ad İSTEMEYİZ.
+  // Apple 5.1.1(iv): ATT denied/notDetermined iken IDFA/tracking cookie
+  // çekilmemeli → non-personalized ad request gönderilir.
+  bool _trackingAllowed = false; // iOS ATT authorized
+  bool _umpAllowed = false;      // UMP obtained veya notRequired (non-EEA)
+
   // Session-bazlı ölüm sayacı — uygulama kapanınca sıfırlanır.
   int _sessionDeaths = 0;
   static const int _deathsPerAd = 3;
@@ -44,8 +51,10 @@ class AdService {
   Future<void> initialize() async {
     if (kIsWeb) return;
     debugPrint('[AdInit] START');
-    await _requestAttPermission();
-    await _requestConsent();
+    await _requestAttPermission();   // → _trackingAllowed set
+    await _requestConsent();         // → _umpAllowed set
+    debugPrint('[AdInit] Consent snapshot → tracking=$_trackingAllowed '
+        'ump=$_umpAllowed → personalized=${_trackingAllowed && _umpAllowed}');
     debugPrint('[AdInit] MobileAds.initialize()');
     await MobileAds.instance.initialize();
     _initialized = true;
@@ -54,29 +63,56 @@ class AdService {
     _loadInterstitial();
   }
 
+  // ── AdRequest builder — ATT + UMP izinlerine göre npa hesapla ──
+  // Kural: (_trackingAllowed && _umpAllowed) DEĞİLSE non-personalized.
+  //   - ATT denied / notDetermined (iOS) → npa=1
+  //   - UMP required / unknown (EEA formu reddedildi) → npa=1
+  //   - Android'de ATT yok → _trackingAllowed init'te authorized
+  //     gibi işlem görecek (bkz. _requestAttPermission).
+  // extras: {'npa':'1'} mediation ağlarına da sinyal verir.
+  AdRequest _buildAdRequest() {
+    final canPersonalize = _trackingAllowed && _umpAllowed;
+    if (canPersonalize) {
+      debugPrint('[AdRequest] npa=0 (personalized) — tracking + ump OK');
+      return const AdRequest();
+    }
+    debugPrint('[AdRequest] npa=1 (NON-personalized) — '
+        'tracking=$_trackingAllowed ump=$_umpAllowed');
+    return const AdRequest(
+      nonPersonalizedAds: true,
+      extras: {'npa': '1'},
+    );
+  }
+
   // ── ATT (iOS App Tracking Transparency) ────────────────────────
   // Popup için Info.plist'te NSUserTrackingUsageDescription şart.
   // iOS 14.5+ cihazlarda notDetermined ise popup göster; kullanıcı yanıtını bekle.
   Future<void> _requestAttPermission() async {
     if (!Platform.isIOS) {
-      debugPrint('[ATT] Non-iOS platform — skip');
+      // Android'de ATT yok — tracking izni ATT üzerinden aranmaz.
+      // AdMob personalization Android tarafında UMP / user settings ile
+      // yönetilir; ATT flag'ini "izinli" işaretle ki iOS-özel kısıt
+      // Android'i etkilemesin.
+      _trackingAllowed = true;
+      debugPrint('[ATT] Non-iOS platform — _trackingAllowed=true (N/A)');
       return;
     }
     try {
-      final current =
-          await AppTrackingTransparency.trackingAuthorizationStatus;
-      debugPrint('[ATT] Current status: $current');
-      if (current == TrackingStatus.notDetermined) {
+      var status = await AppTrackingTransparency.trackingAuthorizationStatus;
+      debugPrint('[ATT] Current status: $status');
+      if (status == TrackingStatus.notDetermined) {
         // İlk kare çizilsin diye küçük gecikme (Apple önerisi).
         await Future.delayed(const Duration(milliseconds: 250));
-        final result =
-            await AppTrackingTransparency.requestTrackingAuthorization();
-        debugPrint('[ATT] Request result: $result');
+        status = await AppTrackingTransparency.requestTrackingAuthorization();
+        debugPrint('[ATT] Request result: $status');
       } else {
         debugPrint('[ATT] Already resolved — no popup');
       }
+      _trackingAllowed = status == TrackingStatus.authorized;
+      debugPrint('[ATT] _trackingAllowed=$_trackingAllowed (status=$status)');
     } catch (e) {
-      debugPrint('[ATT] Exception: $e');
+      debugPrint('[ATT] Exception: $e — _trackingAllowed stays false');
+      _trackingAllowed = false;
     }
   }
 
@@ -109,8 +145,19 @@ class AdService {
         formDone.complete();
       });
       await formDone.future;
+
+      // ConsentStatus okuması:
+      //   obtained    → kullanıcı formda seçim yaptı, personalized OK
+      //   notRequired → GDPR bölgesi dışı, izin gerekmiyor → OK
+      //   required    → izin lazım ama alınmamış → NPA
+      //   unknown     → durum belirsiz → NPA (güvenli taraf)
+      final status = await ConsentInformation.instance.getConsentStatus();
+      _umpAllowed = status == ConsentStatus.obtained ||
+          status == ConsentStatus.notRequired;
+      debugPrint('[UMP] _umpAllowed=$_umpAllowed (status=$status)');
     } catch (e) {
-      debugPrint('[UMP] Exception: $e');
+      debugPrint('[UMP] Exception: $e — _umpAllowed stays false');
+      _umpAllowed = false;
     }
   }
 
@@ -119,7 +166,7 @@ class AdService {
     if (!_initialized) return;
     RewardedAd.load(
       adUnitId: AdConfig.rewardedId,
-      request: const AdRequest(),
+      request: _buildAdRequest(),
       rewardedAdLoadCallback: RewardedAdLoadCallback(
         onAdLoaded: (ad) {
           _rewarded = ad;
@@ -175,7 +222,7 @@ class AdService {
     if (!_initialized) return;
     InterstitialAd.load(
       adUnitId: AdConfig.interstitialId,
-      request: const AdRequest(),
+      request: _buildAdRequest(),
       adLoadCallback: InterstitialAdLoadCallback(
         onAdLoaded: (ad) {
           _interstitial = ad;
