@@ -235,12 +235,17 @@ class _ShopScreenState extends State<ShopScreen> {
     if (!mounted) return;
     setState(() => _loading = false);
 
-    if (result.hasPremium) {
-      _snack('Aboneliğin geri yüklendi!');
+    final tr = isTurkish();
+    if (result.restored) {
+      _snack(tr
+          ? 'Satın almaların geri yüklendi'
+          : 'Your purchases have been restored');
     } else if (result.error != null) {
-      _snack('Hata: ${result.error}');
+      _snack(tr ? 'Hata: ${result.error}' : 'Error: ${result.error}');
     } else {
-      _snack('Aktif abonelik bulunamadı');
+      _snack(tr
+          ? 'Geri yüklenecek abonelik veya kalıcı satın alma yok'
+          : 'No subscriptions or permanent purchases to restore');
     }
   }
 

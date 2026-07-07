@@ -181,16 +181,21 @@ class _PaywallScreenState extends State<PaywallScreen> {
     if (!mounted) return;
     setState(() => _loading = false);
 
-    if (result.hasPremium) {
-      _snack('Aboneliğin geri yüklendi!');
+    final tr = isTurkish();
+    if (result.restored) {
+      _snack(tr
+          ? 'Satın almaların geri yüklendi'
+          : 'Your purchases have been restored');
       await Future.delayed(const Duration(milliseconds: 800));
       if (mounted) {
         if (context.canPop()) { context.pop(); } else { context.go('/categories'); }
       }
     } else if (result.error != null) {
-      _snack('Hata: ${result.error}');
+      _snack(tr ? 'Hata: ${result.error}' : 'Error: ${result.error}');
     } else {
-      _snack('Aktif abonelik bulunamadı');
+      _snack(tr
+          ? 'Geri yüklenecek abonelik veya kalıcı satın alma yok'
+          : 'No subscriptions or permanent purchases to restore');
     }
   }
 

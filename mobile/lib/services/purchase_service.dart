@@ -59,17 +59,24 @@ class PurchaseService {
     }
   }
 
-  Future<({bool hasPremium, String? error})> restorePurchases() async {
+  Future<({bool restored, bool hasPremium, String? error})> restorePurchases() async {
     if (kIsWeb || !_initialized) {
-      return (hasPremium: false, error: 'Desteklenmiyor');
+      return (restored: false, hasPremium: false, error: 'Desteklenmiyor');
     }
     try {
+      // Apple 3.1.1: consumable IAP (token paketleri) restore edilemez.
+      // RevenueCat.restorePurchases() sadece non-consumable + subscription döndürür.
+      // Token bakiyesine burada dokunmuyoruz.
       final info = await Purchases.restorePurchases();
+
       final hasPremium =
           info.entitlements.active.containsKey(RevenueCatKeys.entitlementPremium);
-      return (hasPremium: hasPremium, error: null);
+      final hasNonConsumable = info.nonSubscriptionTransactions.isNotEmpty;
+
+      final restored = hasPremium || hasNonConsumable;
+      return (restored: restored, hasPremium: hasPremium, error: null);
     } catch (e) {
-      return (hasPremium: false, error: e.toString());
+      return (restored: false, hasPremium: false, error: e.toString());
     }
   }
 
