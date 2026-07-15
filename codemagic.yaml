@@ -141,36 +141,30 @@ workflows:
           python3 <<'PY'
           import re, os
           from pathlib import Path
-          bg = Path('android/app/build.gradle.kts'); s = bg.read_text()
-          ksp = os.environ["CM_KEYSTORE_PASSWORD"]; ka = os.environ["CM_KEY_ALIAS"]; kp = os.environ.get("CM_KEY_PASSWORD","")
-          # Kotlin DSL syntax for signingConfigs
-          # Insert before buildTypes { ... } block
-          release_block = f"""
-    signingConfigs {{
-        create("release") {{
-            storeFile = file("upload-key.jks")
-            storePassword = "{ksp}"
-            keyAlias = "{ka}"
-            keyPassword = "{kp}"
-        }}
-    }}
-"""
-          # Insert signingConfigs before buildTypes if not present
-          if "signingConfigs {" not in s and 'signingConfigs {' not in s:
-              s = re.sub(r"(buildTypes\s*\{)", release_block + r"    \1", s, count=1)
-
-          # Change release buildType to use release signing config
-          # Typical Flutter: buildTypes { release { signingConfig = signingConfigs.getByName("debug") } }
+          bg = Path('android/app/build.gradle.kts')
+          s = bg.read_text()
+          ksp = os.environ["CM_KEYSTORE_PASSWORD"]
+          ka  = os.environ["CM_KEY_ALIAS"]
+          kp  = os.environ.get("CM_KEY_PASSWORD","")
+          release_block = (
+              "\n    signingConfigs {\n"
+              "        create(\"release\") {\n"
+              "            storeFile = file(\"upload-key.jks\")\n"
+              f"            storePassword = \"{ksp}\"\n"
+              f"            keyAlias = \"{ka}\"\n"
+              f"            keyPassword = \"{kp}\"\n"
+              "        }\n"
+              "    }\n"
+          )
+          if "signingConfigs {" not in s:
+              s = re.sub(r"(\n\s*buildTypes\s*\{)", release_block + r"\1", s, count=1)
           s = re.sub(
               r'signingConfig\s*=\s*signingConfigs\.getByName\("debug"\)',
               'signingConfig = signingConfigs.getByName("release")',
               s, count=1
           )
           bg.write_text(s)
-          print("patched")
-          # Print signing block for verification
-          m = re.search(r"signingConfigs\s*\{[^}]*(?:\{[^}]*\}[^}]*)*\}", s)
-          if m: print(m.group(0)[:400])
+          print("patched build.gradle.kts")
           PY
 
       - name: Bump JVM heap
