@@ -177,6 +177,37 @@ workflows:
           android.experimental.lint.abortOnError=false
           EOF
 
+      - name: Add ProGuard rules for Play Core
+        script: |
+          # Flutter Engine references com.google.android.play.core.* for deferred
+          # component / split-install features; without the play_core dependency,
+          # R8 minification fails. Add keep rules OR disable minify.
+          mkdir -p android/app
+          cat > android/app/proguard-rules.pro << 'EOF'
+          -keep class com.google.android.play.core.** { *; }
+          -dontwarn com.google.android.play.core.**
+          -keep class io.flutter.embedding.engine.deferredcomponents.** { *; }
+          -keep class io.flutter.embedding.android.FlutterPlayStoreSplitApplication { *; }
+          EOF
+          # Wire proguard rules into build.gradle if not already
+          python3 <<'PY'
+          import re
+          from pathlib import Path
+          bg = Path("android/app/build.gradle.kts")
+          s = bg.read_text()
+          if "proguard-rules.pro" not in s:
+              # Insert proguardFiles into release buildType
+              s = re.sub(
+                  r'(buildTypes\s*\{\s*release\s*\{)',
+                  r'\1\n            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")',
+                  s, count=1
+              )
+              bg.write_text(s)
+              print("added proguardFiles")
+          else:
+              print("proguardFiles already present")
+          PY
+
       - name: Build Android AAB
         script: |
           BUILD_NUM=$((BUILD_NUMBER + VERSION_CODE_BASE))
