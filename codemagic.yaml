@@ -136,36 +136,19 @@ workflows:
           print(re.search(r"^version:.*", s2, re.MULTILINE).group(0))
           PY
 
-      - name: Wire keystore into gradle release signingConfig
+      - name: Write key.properties (PixReveal build.gradle expects it at repo root of android/)
         script: |
-          python3 <<'PY'
-          import re, os
-          from pathlib import Path
-          bg = Path('android/app/build.gradle.kts')
-          s = bg.read_text()
-          ksp = os.environ["CM_KEYSTORE_PASSWORD"]
-          ka  = os.environ["CM_KEY_ALIAS"]
-          kp  = os.environ.get("CM_KEY_PASSWORD","")
-          release_block = (
-              "\n    signingConfigs {\n"
-              "        create(\"release\") {\n"
-              "            storeFile = file(\"upload-key.jks\")\n"
-              f"            storePassword = \"{ksp}\"\n"
-              f"            keyAlias = \"{ka}\"\n"
-              f"            keyPassword = \"{kp}\"\n"
-              "        }\n"
-              "    }\n"
-          )
-          if "signingConfigs {" not in s:
-              s = re.sub(r"(\n\s*buildTypes\s*\{)", release_block + r"\1", s, count=1)
-          s = re.sub(
-              r'signingConfig\s*=\s*signingConfigs\.getByName\("debug"\)',
-              'signingConfig = signingConfigs.getByName("release")',
-              s, count=1
-          )
-          bg.write_text(s)
-          print("patched build.gradle.kts")
-          PY
+          # PixReveal's build.gradle.kts loads keyAlias/keyPassword/storeFile/storePassword
+          # from android/key.properties via rootProject.file("key.properties").
+          # rootProject for :app is android/. Write it there.
+          cat > android/key.properties << EOF
+          storeFile=upload-key.jks
+          storePassword=$CM_KEYSTORE_PASSWORD
+          keyAlias=$CM_KEY_ALIAS
+          keyPassword=$CM_KEY_PASSWORD
+          EOF
+          echo "wrote android/key.properties (values redacted)"
+          ls -la android/key.properties android/app/upload-key.jks
 
       - name: Bump JVM heap
         script: |
