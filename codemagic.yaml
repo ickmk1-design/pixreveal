@@ -89,3 +89,123 @@ workflows:
         submit_to_testflight: true
         beta_groups:
           - Internal Testers
+
+  android-release:
+    name: PixReveal Android Release
+    max_build_duration: 90
+    instance_type: mac_mini_m1
+    working_directory: mobile
+    environment:
+      groups:
+        - pixreveal_android
+      flutter: stable
+      java: 17
+      vars:
+        PACKAGE_NAME: "com.cytbilisim.pixreveal"
+        VERSION_CODE_BASE: "20"
+
+    scripts:
+      - name: Install NDK 27.0.12077973
+        script: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "ndk;27.0.12077973" 2>&1 | tail -5
+
+      - name: Flutter packages get
+        script: flutter packages pub get
+
+      - name: Decode keystore from CM_KEYSTORE_B64
+        script: |
+          echo "$CM_KEYSTORE_B64" | base64 -d > android/app/upload-key.jks
+          xxd -l 4 android/app/upload-key.jks
+          keytool -list -keystore android/app/upload-key.jks \
+                  -storepass "$CM_KEYSTORE_PASSWORD" 2>&1 | grep -E "^Alias name" || true
+
+      - name: Set versionCode from Codemagic BUILD_NUMBER
+        script: |
+          # Flutter reads versionCode from pubspec.yaml (after +) OR uses flutter.versionCode
+          # in gradle. We set it via --build-number on the flutter build cmd, but also patch
+          # pubspec to be safe.
+          python3 <<'PY'
+          import os, re
+          from pathlib import Path
+          vc = int(os.environ.get("BUILD_NUMBER","0")) + int(os.environ.get("VERSION_CODE_BASE","20"))
+          # Patch pubspec version's build number
+          ps = Path("pubspec.yaml"); s = ps.read_text()
+          s2, n = re.subn(r"(^version:\s*[\d.]+)\+\d+", rf"\1+{vc}", s, count=1, flags=re.MULTILINE)
+          if n == 0: raise SystemExit("no version+N pattern in pubspec.yaml")
+          ps.write_text(s2)
+          print(re.search(r"^version:.*", s2, re.MULTILINE).group(0))
+          PY
+
+      - name: Wire keystore into gradle release signingConfig
+        script: |
+          python3 <<'PY'
+          import re, os
+          from pathlib import Path
+          bg = Path('android/app/build.gradle.kts'); s = bg.read_text()
+          ksp = os.environ["CM_KEYSTORE_PASSWORD"]; ka = os.environ["CM_KEY_ALIAS"]; kp = os.environ.get("CM_KEY_PASSWORD","")
+          # Kotlin DSL syntax for signingConfigs
+          # Insert before buildTypes { ... } block
+          release_block = f"""
+    signingConfigs {{
+        create("release") {{
+            storeFile = file("upload-key.jks")
+            storePassword = "{ksp}"
+            keyAlias = "{ka}"
+            keyPassword = "{kp}"
+        }}
+    }}
+"""
+          # Insert signingConfigs before buildTypes if not present
+          if "signingConfigs {" not in s and 'signingConfigs {' not in s:
+              s = re.sub(r"(buildTypes\s*\{)", release_block + r"    \1", s, count=1)
+
+          # Change release buildType to use release signing config
+          # Typical Flutter: buildTypes { release { signingConfig = signingConfigs.getByName("debug") } }
+          s = re.sub(
+              r'signingConfig\s*=\s*signingConfigs\.getByName\("debug"\)',
+              'signingConfig = signingConfigs.getByName("release")',
+              s, count=1
+          )
+          bg.write_text(s)
+          print("patched")
+          # Print signing block for verification
+          m = re.search(r"signingConfigs\s*\{[^}]*(?:\{[^}]*\}[^}]*)*\}", s)
+          if m: print(m.group(0)[:400])
+          PY
+
+      - name: Bump JVM heap
+        script: |
+          cat >> android/gradle.properties <<'EOF'
+
+          org.gradle.jvmargs=-Xmx6g -Dfile.encoding=UTF-8 -XX:+UseParallelGC
+          org.gradle.parallel=true
+          org.gradle.caching=true
+          android.experimental.lint.abortOnError=false
+          EOF
+
+      - name: Build Android AAB
+        script: |
+          BUILD_NUM=$((BUILD_NUMBER + VERSION_CODE_BASE))
+          flutter build appbundle --release --build-number=$BUILD_NUM 2>&1 | tee /tmp/flutter_build.log
+          RC=${PIPESTATUS[0]}
+          echo "flutter exit: $RC"
+          cp /tmp/flutter_build.log ../flutter-build.log || true
+          tail -200 /tmp/flutter_build.log || true
+          exit $RC
+
+    artifacts:
+      - mobile/build/app/outputs/bundle/release/*.aab
+      - mobile/build/app/outputs/mapping/**/mapping.txt
+      - flutter-build.log
+
+    publishing:
+      google_play:
+        credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
+        track: internal
+        submit_as_draft: false
+      email:
+        recipients:
+          - ickmk1@gmail.com
+        notify:
+          success: true
+          failure: true

@@ -28,3 +28,7 @@ mobile/.dart_tool/
 mobile/build/
 mobile/android/.gradle/
 mobile/ios/Pods/
+mobile/pixreveal-upload.jks
+mobile/_ks_creds.env
+flutter-build.log
+mobile/flutter-build.log
