@@ -180,16 +180,18 @@ workflows:
       - name: Build Android AAB
         script: |
           BUILD_NUM=$((BUILD_NUMBER + VERSION_CODE_BASE))
-          flutter build appbundle --release --build-number=$BUILD_NUM 2>&1 | tee /tmp/flutter_build.log
+          flutter build appbundle --release --build-number=$BUILD_NUM --verbose 2>&1 | tee /tmp/flutter_build.log
           RC=${PIPESTATUS[0]}
-          echo "flutter exit: $RC"
-          cp /tmp/flutter_build.log ../flutter-build.log || true
-          tail -200 /tmp/flutter_build.log || true
+          echo "=== flutter exit: $RC ==="
+          # Write log INSIDE working_directory so artifact glob (relative) matches
+          cp /tmp/flutter_build.log flutter-build.log || true
+          echo "=== last 500 lines ==="
+          tail -500 /tmp/flutter_build.log || true
           exit $RC
 
     artifacts:
-      - mobile/build/app/outputs/bundle/release/*.aab
-      - mobile/build/app/outputs/mapping/**/mapping.txt
+      - build/app/outputs/bundle/release/*.aab
+      - build/app/outputs/mapping/**/mapping.txt
       - flutter-build.log
 
     publishing:
