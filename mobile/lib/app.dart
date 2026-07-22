@@ -8,7 +8,7 @@ class PixRevealApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      title: 'PixReveal',
+      title: 'Reveal Zone',
       debugShowCheckedModeBanner: false,
       routerConfig: appRouter,
       theme: ThemeData(

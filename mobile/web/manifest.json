@@ -1,6 +1,6 @@
 {
-    "name": "pixreveal",
-    "short_name": "pixreveal",
+    "name": "Reveal Zone",
+    "short_name": "Reveal Zone",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
