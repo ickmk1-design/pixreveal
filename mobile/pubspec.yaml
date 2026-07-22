@@ -1,7 +1,7 @@
 name: pixreveal
 description: Retro Arcade Puzzle - Qix/Gals Panic style territory capture game
 publish_to: 'none'
-version: 1.0.0+2
+version: 1.0.0+26
 
 environment:
   sdk: '>=3.2.0 <4.0.0'
@@ -27,7 +27,7 @@ dependencies:
   go_router: ^14.0.0
   flutter_animate: ^4.5.0
   cupertino_icons: ^1.0.8
-  google_fonts: ^6.2.1
+  google_fonts: ^8.2.0
   google_sign_in: ^7.1.1
   sign_in_with_apple: ^7.0.1
   vibration: ^3.1.8
