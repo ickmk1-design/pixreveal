@@ -19,6 +19,13 @@
 # Flame game engine
 -keep class com.flame.** { *; }
 
+# Play Core (Flutter engine references these for deferred components / split-install;
+# apps that don't use those features still hit R8 minification failures without keeps)
+-keep class com.google.android.play.core.** { *; }
+-dontwarn com.google.android.play.core.**
+-keep class io.flutter.embedding.engine.deferredcomponents.** { *; }
+-keep class io.flutter.embedding.android.FlutterPlayStoreSplitApplication { *; }
+
 # General
 -keepattributes Signature
 -keepattributes *Annotation*
