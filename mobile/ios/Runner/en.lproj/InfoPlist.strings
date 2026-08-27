@@ -1,0 +1,2 @@
+NSUserTrackingUsageDescription = "This app uses advertiser data to show you more relevant ads.";
+NSPhotoLibraryUsageDescription = "Reveal Zone needs access to your photos to let you play with your own images.";

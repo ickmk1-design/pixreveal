@@ -19,6 +19,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
   Package? _monthlyPackage;
   Package? _yearlyPackage;
   bool _loading = false;
+  bool _offeringsLoading = true;
 
   @override
   void initState() {
@@ -30,21 +31,20 @@ class _PaywallScreenState extends State<PaywallScreen> {
     final offerings = await PurchaseService.instance.getOfferings();
     if (!mounted) return;
     if (offerings == null) {
-      _snack('Offering yüklenemedi');
+      setState(() => _offeringsLoading = false);
       return;
     }
     final current = offerings.current;
     if (current == null) {
-      _snack('Offering bulunamadı (current null)');
+      setState(() => _offeringsLoading = false);
       return;
     }
     setState(() {
       _monthlyPackage = current.monthly;
       _yearlyPackage = current.annual;
       _selectedPackage = _yearlyPackage ?? _monthlyPackage;
+      _offeringsLoading = false;
     });
-    if (_yearlyPackage == null) _snack('Yıllık paket offering\'de yok');
-    if (_monthlyPackage == null) _snack('Aylık paket offering\'de yok');
   }
 
   @override
@@ -99,36 +99,80 @@ class _PaywallScreenState extends State<PaywallScreen> {
   }
 
   List<Widget> _buildPriceOverlays(Size size) {
-    final style = GoogleFonts.rajdhani(
+    final tr = isTurkish();
+    final labelStyle = GoogleFonts.rajdhani(
+      fontSize: size.width * 0.042,
+      fontWeight: FontWeight.w700,
+      color: const Color(0xFF00D4FF),
+    );
+    final priceStyle = GoogleFonts.rajdhani(
       fontSize: size.width * 0.055,
       fontWeight: FontWeight.w800,
       color: Colors.white,
       shadows: const [Shadow(color: Color(0xFF00D4FF), blurRadius: 8)],
     );
+    final subStyle = GoogleFonts.rajdhani(
+      fontSize: size.width * 0.032,
+      fontWeight: FontWeight.w600,
+      color: Colors.white70,
+    );
+
+    Widget priceWidget(Package? pkg, String staticLabel, String staticSub) {
+      if (_offeringsLoading) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(staticLabel, style: labelStyle, textAlign: TextAlign.center),
+            const SizedBox(height: 4),
+            const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                color: Color(0xFF00D4FF),
+                strokeWidth: 2,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(staticSub, style: subStyle, textAlign: TextAlign.center),
+          ],
+        );
+      }
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(staticLabel, style: labelStyle, textAlign: TextAlign.center),
+          const SizedBox(height: 2),
+          Text(
+            pkg?.storeProduct.priceString ?? '—',
+            style: priceStyle,
+            textAlign: TextAlign.center,
+          ),
+          Text(staticSub, style: subStyle, textAlign: TextAlign.center),
+        ],
+      );
+    }
 
     return [
-      if (_monthlyPackage != null)
-        Positioned(
-          left: size.width * 0.04,
-          top: size.height * 0.485,
-          width: size.width * 0.43,
-          child: Text(
-            _monthlyPackage!.storeProduct.priceString,
-            style: style,
-            textAlign: TextAlign.center,
-          ),
+      Positioned(
+        left: size.width * 0.04,
+        top: size.height * 0.455,
+        width: size.width * 0.43,
+        child: priceWidget(
+          _monthlyPackage,
+          tr ? 'AYLIK' : 'MONTHLY',
+          tr ? 'Her ay yenilenir' : 'Billed monthly',
         ),
-      if (_yearlyPackage != null)
-        Positioned(
-          left: size.width * 0.51,
-          top: size.height * 0.485,
-          width: size.width * 0.44,
-          child: Text(
-            _yearlyPackage!.storeProduct.priceString,
-            style: style,
-            textAlign: TextAlign.center,
-          ),
+      ),
+      Positioned(
+        left: size.width * 0.51,
+        top: size.height * 0.455,
+        width: size.width * 0.44,
+        child: priceWidget(
+          _yearlyPackage,
+          tr ? 'YILLIK' : 'YEARLY',
+          tr ? 'Her yıl yenilenir' : 'Billed annually',
         ),
+      ),
     ];
   }
 

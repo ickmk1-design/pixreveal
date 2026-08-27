@@ -5,7 +5,12 @@
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
-	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<string>en</string>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>en</string>
+		<string>tr</string>
+	</array>
 	<key>CFBundleDisplayName</key>
 	<string>Reveal Zone</string>
 	<key>CFBundleExecutable</key>
@@ -52,7 +57,7 @@
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>NSUserTrackingUsageDescription</key>
-	<string>Bu uygulama sana daha alakalı reklamlar göstermek için reklamveren verilerini kullanır. / This app uses advertiser data to show you more relevant ads.</string>
+	<string>This app uses advertiser data to show you more relevant ads.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Reveal Zone needs access to your photos to let you play with your own images.</string>
 	<key>SKAdNetworkItems</key>
