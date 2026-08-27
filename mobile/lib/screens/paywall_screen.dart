@@ -20,6 +20,12 @@ class _PaywallScreenState extends State<PaywallScreen> {
   Package? _yearlyPackage;
   bool _loading = false;
   bool _offeringsLoading = true;
+  bool _offeringsError = false;
+
+  // Price overlay coordinates match the visible box body (excluding RECOMMENDED badge)
+  static const double _monthlyX = 2,  _monthlyY = 57, _monthlyW = 44, _monthlyH = 15;
+  static const double _yearlyX  = 50, _yearlyY  = 57, _yearlyW  = 47, _yearlyH  = 15;
+  static const double _subscribeX = 8, _subscribeY = 79, _subscribeW = 84, _subscribeH = 10;
 
   @override
   void initState() {
@@ -28,20 +34,24 @@ class _PaywallScreenState extends State<PaywallScreen> {
   }
 
   Future<void> _loadOfferings() async {
+    setState(() {
+      _offeringsLoading = true;
+      _offeringsError = false;
+    });
     final offerings = await PurchaseService.instance.getOfferings();
     if (!mounted) return;
-    if (offerings == null) {
-      setState(() => _offeringsLoading = false);
-      return;
-    }
-    final current = offerings.current;
+    final current = offerings?.current;
     if (current == null) {
-      setState(() => _offeringsLoading = false);
+      setState(() {
+        _offeringsLoading = false;
+        _offeringsError = true;
+      });
       return;
     }
     setState(() {
       _monthlyPackage = current.monthly;
       _yearlyPackage = current.annual;
+      // Default: yearly (RECOMMENDED)
       _selectedPackage = _yearlyPackage ?? _monthlyPackage;
       _offeringsLoading = false;
     });
@@ -60,9 +70,8 @@ class _PaywallScreenState extends State<PaywallScreen> {
               calibrateMode: false,
               showBackButton: false,
               onNavigate: _onTap,
-              overlayBuilder: _buildPriceOverlays,
+              overlayBuilder: _buildOverlays,
             ),
-            // X close button (not present in PNG design)
             Positioned(
               top: 12,
               right: 12,
@@ -70,7 +79,11 @@ class _PaywallScreenState extends State<PaywallScreen> {
                 behavior: HitTestBehavior.opaque,
                 onTap: () {
                   AudioService.play('button_click');
-                  if (context.canPop()) { context.pop(); } else { context.go('/menu'); }
+                  if (context.canPop()) {
+                    context.pop();
+                  } else {
+                    context.go('/menu');
+                  }
                 },
                 child: Container(
                   width: 40,
@@ -90,7 +103,9 @@ class _PaywallScreenState extends State<PaywallScreen> {
             if (_loading)
               const ColoredBox(
                 color: Color(0x88000000),
-                child: Center(child: CircularProgressIndicator(color: Color(0xFF00D4FF))),
+                child: Center(
+                  child: CircularProgressIndicator(color: Color(0xFF00D4FF)),
+                ),
               ),
           ],
         ),
@@ -98,33 +113,133 @@ class _PaywallScreenState extends State<PaywallScreen> {
     );
   }
 
-  List<Widget> _buildPriceOverlays(Size size) {
+  List<Widget> _buildOverlays(Size size) {
     final tr = isTurkish();
+
     final labelStyle = GoogleFonts.rajdhani(
-      fontSize: size.width * 0.042,
+      fontSize: size.width * 0.038,
       fontWeight: FontWeight.w700,
       color: const Color(0xFF00D4FF),
     );
     final priceStyle = GoogleFonts.rajdhani(
-      fontSize: size.width * 0.055,
+      fontSize: size.width * 0.052,
       fontWeight: FontWeight.w800,
       color: Colors.white,
       shadows: const [Shadow(color: Color(0xFF00D4FF), blurRadius: 8)],
     );
     final subStyle = GoogleFonts.rajdhani(
-      fontSize: size.width * 0.032,
+      fontSize: size.width * 0.028,
       fontWeight: FontWeight.w600,
       color: Colors.white70,
     );
 
-    Widget priceWidget(Package? pkg, String staticLabel, String staticSub) {
+    Widget priceContent(Package? pkg, String label, String sub) {
       if (_offeringsLoading) {
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(staticLabel, style: labelStyle, textAlign: TextAlign.center),
-            const SizedBox(height: 4),
+            Text(label, style: labelStyle, textAlign: TextAlign.center),
+            const SizedBox(height: 6),
             const SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(
+                color: Color(0xFF00D4FF),
+                strokeWidth: 2,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(sub, style: subStyle, textAlign: TextAlign.center),
+          ],
+        );
+      }
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(label, style: labelStyle, textAlign: TextAlign.center),
+          const SizedBox(height: 2),
+          Text(
+            pkg?.storeProduct.priceString ?? '—',
+            style: priceStyle,
+            textAlign: TextAlign.center,
+          ),
+          Text(sub, style: subStyle, textAlign: TextAlign.center),
+        ],
+      );
+    }
+
+    // Yearly is selected unless monthly was explicitly chosen
+    final bool monthlySelected = _selectedPackage == _monthlyPackage && _selectedPackage != null;
+    final bool yearlySelected = !monthlySelected;
+
+    const borderRadius = BorderRadius.all(Radius.circular(12));
+    const selectedBorder = BoxDecoration(
+      borderRadius: borderRadius,
+      border: Border.fromBorderSide(
+        BorderSide(color: Color(0xFF00D4FF), width: 2.5),
+      ),
+    );
+
+    return [
+      // ── Monthly box: price centered inside ──────────────────────
+      Positioned(
+        left: size.width * _monthlyX / 100,
+        top: size.height * _monthlyY / 100,
+        width: size.width * _monthlyW / 100,
+        height: size.height * _monthlyH / 100,
+        child: Center(
+          child: priceContent(
+            _monthlyPackage,
+            tr ? 'AYLIK' : 'MONTHLY',
+            tr ? 'Her ay yenilenir' : 'Billed monthly',
+          ),
+        ),
+      ),
+
+      // ── Yearly box: price centered inside ───────────────────────
+      Positioned(
+        left: size.width * _yearlyX / 100,
+        top: size.height * _yearlyY / 100,
+        width: size.width * _yearlyW / 100,
+        height: size.height * _yearlyH / 100,
+        child: Center(
+          child: priceContent(
+            _yearlyPackage,
+            tr ? 'YILLIK' : 'YEARLY',
+            tr ? 'Her yıl yenilenir' : 'Billed annually',
+          ),
+        ),
+      ),
+
+      // ── Selected border: monthly ─────────────────────────────────
+      if (monthlySelected)
+        Positioned(
+          left: size.width * _monthlyX / 100,
+          top: size.height * _monthlyY / 100,
+          width: size.width * _monthlyW / 100,
+          height: size.height * _monthlyH / 100,
+          child: const DecoratedBox(decoration: selectedBorder),
+        ),
+
+      // ── Selected border: yearly (default + explicit) ─────────────
+      if (yearlySelected)
+        Positioned(
+          left: size.width * _yearlyX / 100,
+          top: size.height * _yearlyY / 100,
+          width: size.width * _yearlyW / 100,
+          height: size.height * _yearlyH / 100,
+          child: const DecoratedBox(decoration: selectedBorder),
+        ),
+
+      // ── Subscribe area: loading indicator ───────────────────────
+      if (_offeringsLoading)
+        Positioned(
+          left: size.width * _subscribeX / 100,
+          top: size.height * _subscribeY / 100,
+          width: size.width * _subscribeW / 100,
+          height: size.height * _subscribeH / 100,
+          child: const Center(
+            child: SizedBox(
               width: 20,
               height: 20,
               child: CircularProgressIndicator(
@@ -132,65 +247,51 @@ class _PaywallScreenState extends State<PaywallScreen> {
                 strokeWidth: 2,
               ),
             ),
-            const SizedBox(height: 2),
-            Text(staticSub, style: subStyle, textAlign: TextAlign.center),
-          ],
-        );
-      }
-      return Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(staticLabel, style: labelStyle, textAlign: TextAlign.center),
-          const SizedBox(height: 2),
-          Text(
-            pkg?.storeProduct.priceString ?? '—',
-            style: priceStyle,
-            textAlign: TextAlign.center,
           ),
-          Text(staticSub, style: subStyle, textAlign: TextAlign.center),
-        ],
-      );
-    }
+        ),
 
-    return [
-      Positioned(
-        left: size.width * 0.04,
-        top: size.height * 0.455,
-        width: size.width * 0.43,
-        child: priceWidget(
-          _monthlyPackage,
-          tr ? 'AYLIK' : 'MONTHLY',
-          tr ? 'Her ay yenilenir' : 'Billed monthly',
+      // ── Subscribe area: error / retry hint ──────────────────────
+      if (_offeringsError)
+        Positioned(
+          left: size.width * _subscribeX / 100,
+          top: size.height * _subscribeY / 100,
+          width: size.width * _subscribeW / 100,
+          height: size.height * _subscribeH / 100,
+          child: Center(
+            child: Text(
+              tr ? '↺ Tekrar Dene' : '↺ Retry',
+              style: GoogleFonts.rajdhani(
+                color: const Color(0xFFFF6B35),
+                fontSize: size.width * 0.042,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
         ),
-      ),
-      Positioned(
-        left: size.width * 0.51,
-        top: size.height * 0.455,
-        width: size.width * 0.44,
-        child: priceWidget(
-          _yearlyPackage,
-          tr ? 'YILLIK' : 'YEARLY',
-          tr ? 'Her yıl yenilenir' : 'Billed annually',
-        ),
-      ),
     ];
   }
 
   void _onTap(String target, String id) {
     AudioService.play('button_click');
     if (target == 'close') {
-      if (context.canPop()) { context.pop(); } else { context.go('/menu'); }
+      if (context.canPop()) {
+        context.pop();
+      } else {
+        context.go('/menu');
+      }
       return;
     }
     if (target != 'none') return;
 
     switch (id) {
       case 'monthly':
-        setState(() => _selectedPackage = _monthlyPackage);
-        _snack('Aylık plan seçildi');
+        if (!_offeringsLoading && _monthlyPackage != null) {
+          setState(() => _selectedPackage = _monthlyPackage);
+        }
       case 'yearly':
-        setState(() => _selectedPackage = _yearlyPackage);
-        _snack('Yıllık plan seçildi');
+        if (!_offeringsLoading && _yearlyPackage != null) {
+          setState(() => _selectedPackage = _yearlyPackage);
+        }
       case 'subscribe':
         _subscribe();
       case 'restore':
@@ -199,8 +300,18 @@ class _PaywallScreenState extends State<PaywallScreen> {
   }
 
   Future<void> _subscribe() async {
-    if (_selectedPackage == null) {
-      _snack('Paket yüklenemedi — offerings boş olabilir');
+    if (_offeringsLoading) {
+      _snack(isTurkish() ? 'Paketler yükleniyor...' : 'Loading packages...');
+      return;
+    }
+    if (_offeringsError || _selectedPackage == null) {
+      // Retry loading offerings
+      await _loadOfferings();
+      if (_selectedPackage == null) {
+        _snack(isTurkish()
+            ? 'Paket yüklenemedi — internet bağlantını kontrol et'
+            : 'Could not load packages — check your connection');
+      }
       return;
     }
     setState(() => _loading = true);
@@ -209,13 +320,21 @@ class _PaywallScreenState extends State<PaywallScreen> {
     setState(() => _loading = false);
 
     if (result.success) {
-      _snack('VIP aktif! Reklamsız, sınırsız can ve tüm power-up\'lar açıldı');
+      _snack(isTurkish()
+          ? 'VIP aktif! Reklamsız, sınırsız can ve tüm power-up\'lar açıldı'
+          : 'VIP active! Ad-free, unlimited lives and all power-ups unlocked');
       await Future.delayed(const Duration(milliseconds: 800));
       if (mounted) {
-        if (context.canPop()) { context.pop(); } else { context.go('/categories'); }
+        if (context.canPop()) {
+          context.pop();
+        } else {
+          context.go('/categories');
+        }
       }
     } else if (!result.cancelled) {
-      _snack('Satın alma başarısız: ${result.error ?? 'Bilinmeyen hata'}');
+      _snack(isTurkish()
+          ? 'Satın alma başarısız: ${result.error ?? 'Bilinmeyen hata'}'
+          : 'Purchase failed: ${result.error ?? 'Unknown error'}');
     }
   }
 
@@ -232,7 +351,11 @@ class _PaywallScreenState extends State<PaywallScreen> {
           : 'Your purchases have been restored');
       await Future.delayed(const Duration(milliseconds: 800));
       if (mounted) {
-        if (context.canPop()) { context.pop(); } else { context.go('/categories'); }
+        if (context.canPop()) {
+          context.pop();
+        } else {
+          context.go('/categories');
+        }
       }
     } else if (result.error != null) {
       _snack(tr ? 'Hata: ${result.error}' : 'Error: ${result.error}');
@@ -245,8 +368,11 @@ class _PaywallScreenState extends State<PaywallScreen> {
 
   void _snack(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(msg, textAlign: TextAlign.center,
-          style: const TextStyle(color: Colors.white, fontSize: 14)),
+      content: Text(
+        msg,
+        textAlign: TextAlign.center,
+        style: const TextStyle(color: Colors.white, fontSize: 14),
+      ),
       duration: const Duration(milliseconds: 2000),
       backgroundColor: const Color(0xFF1A0F2E),
       behavior: SnackBarBehavior.floating,

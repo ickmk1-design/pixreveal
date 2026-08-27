@@ -20,19 +20,20 @@ class Hotspot {
 /// the exact center of each button.
 const Map<String, List<Hotspot>> kHotspots = {
   // ─── MENU EN ──────────────────────────────────────────────────
+  // Reveal Zone PNG: PLAY pink y=59-71, SHOP white y=70-81, SETTINGS white y=80-91
   'menu': [
     Hotspot(id: 'coins',    x: 64, y: 0,   w: 36, h: 6,  target: 'shop',       label: 'Jeton'),
-    Hotspot(id: 'play',     x: 18, y: 49,  w: 64, h: 11, target: 'categories', label: 'PLAY'),
-    Hotspot(id: 'shop',     x: 22, y: 64,  w: 56, h: 8,  target: 'shop',       label: 'SHOP'),
-    Hotspot(id: 'settings', x: 22, y: 73,  w: 56, h: 8,  target: 'settings',   label: 'SETTINGS'),
+    Hotspot(id: 'play',     x: 10, y: 58,  w: 80, h: 13, target: 'categories', label: 'PLAY'),
+    Hotspot(id: 'shop',     x: 16, y: 70,  w: 68, h: 11, target: 'shop',       label: 'SHOP'),
+    Hotspot(id: 'settings', x: 16, y: 80,  w: 68, h: 11, target: 'settings',   label: 'SETTINGS'),
   ],
 
-  // ─── MENU TR (PIL ölçüm: OYNA pink 55-65, MAĞAZA white 73-74, AYARLAR white 83)
+  // ─── MENU TR — Reveal Zone PNG: OYNA pink y=62-74, MAĞAZA white y=73-84, AYARLAR white y=83-93
   'menu_tr': [
     Hotspot(id: 'coins',    x: 64, y: 0,   w: 36, h: 6,  target: 'shop',       label: 'Jeton'),
-    Hotspot(id: 'play',     x: 18, y: 53,  w: 64, h: 14, target: 'categories', label: 'OYNA'),
-    Hotspot(id: 'shop',     x: 22, y: 68,  w: 56, h: 10, target: 'shop',       label: 'MAĞAZA'),
-    Hotspot(id: 'settings', x: 22, y: 79,  w: 56, h: 10, target: 'settings',   label: 'AYARLAR'),
+    Hotspot(id: 'play',     x: 10, y: 61,  w: 80, h: 13, target: 'categories', label: 'OYNA'),
+    Hotspot(id: 'shop',     x: 16, y: 73,  w: 68, h: 11, target: 'shop',       label: 'MAĞAZA'),
+    Hotspot(id: 'settings', x: 16, y: 83,  w: 68, h: 10, target: 'settings',   label: 'AYARLAR'),
   ],
 
   // categories: native ekrana geçildi — hotspot listesi kaldırıldı (kalibrasyon yok).
@@ -86,12 +87,13 @@ const Map<String, List<Hotspot>> kHotspots = {
     Hotspot(id: 'theme-beach', x: 75, y: 67, w: 24, h: 18, target: 'none',    label: 'Beach'),
   ],
 
-  // ─── PAYWALL (new design — no X in PNG, Flutter button added) ─
+  // ─── PAYWALL — Reveal Zone PNG: boxes y=57-72, restore y=74-79, subscribe y=79-89
+  // monthly box x=2-46, yearly box x=50-97 (yearly has RECOMMENDED badge at y=53-57)
   'paywall': [
-    Hotspot(id: 'monthly',   x: 4,  y: 41, w: 43, h: 14, target: 'none', label: 'AYLIK'),
-    Hotspot(id: 'yearly',    x: 51, y: 41, w: 44, h: 14, target: 'none', label: 'YILLIK'),
-    Hotspot(id: 'restore',   x: 22, y: 57, w: 56, h: 4,  target: 'none', label: 'Restore'),
-    Hotspot(id: 'subscribe', x: 14, y: 63, w: 72, h: 9,  target: 'none', label: 'ABONE'),
+    Hotspot(id: 'monthly',   x: 2,  y: 57, w: 44, h: 15, target: 'none', label: 'AYLIK'),
+    Hotspot(id: 'yearly',    x: 50, y: 53, w: 47, h: 19, target: 'none', label: 'YILLIK'),
+    Hotspot(id: 'restore',   x: 15, y: 74, w: 70, h: 5,  target: 'none', label: 'Restore'),
+    Hotspot(id: 'subscribe', x: 8,  y: 79, w: 84, h: 10, target: 'none', label: 'ABONE'),
   ],
 
   // ─── SETTINGS (new design 2026-06-28) ────────────────────────
