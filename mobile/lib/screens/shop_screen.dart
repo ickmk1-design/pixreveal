@@ -9,6 +9,7 @@ import '../services/token_service.dart';
 import '../services/entitlement_service.dart';
 import '../services/ad_service.dart';
 import '../utils/locale_helper.dart';
+import '../constants/calibrate.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ShopScreen extends StatefulWidget {
@@ -43,6 +44,7 @@ class _ShopScreenState extends State<ShopScreen> {
             MockupScreen(
               screen: 'shop',
               assetPath: localeAsset('shop'),
+              calibrateMode: kCalibrateMode,
               showBackButton: true,
               onBack: () {
                 AudioService.play('button_click');

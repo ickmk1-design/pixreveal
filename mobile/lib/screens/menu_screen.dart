@@ -4,6 +4,7 @@ import '../widgets/mockup_screen.dart';
 import '../services/audio_service.dart';
 import '../services/token_service.dart';
 import '../utils/locale_helper.dart';
+import '../constants/calibrate.dart';
 
 class MenuScreen extends StatelessWidget {
   const MenuScreen({super.key});
@@ -19,6 +20,7 @@ class MenuScreen extends StatelessWidget {
           builder: (_, balance, __) => MockupScreen(
             screen: isTurkish() ? 'menu_tr' : 'menu',
             assetPath: localeAsset('menu'),
+            calibrateMode: kCalibrateMode,
             onNavigate: (target, id) => _navigate(context, target),
             overlayBuilder: (size) => [
               Positioned(

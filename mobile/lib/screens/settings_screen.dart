@@ -9,6 +9,7 @@ import '../services/audio_service.dart';
 import '../services/settings_service.dart';
 import '../services/purchase_service.dart';
 import '../utils/locale_helper.dart';
+import '../constants/calibrate.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -34,6 +35,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               builder: (_, vibration, __) => MockupScreen(
                 screen: 'settings',
                 assetPath: localeAsset('settings'),
+                calibrateMode: kCalibrateMode,
                 showBackButton: false,
                 onNavigate: (target, id) => _navigate(target, id),
                 overlayBuilder: (size) => [

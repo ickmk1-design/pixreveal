@@ -5,6 +5,7 @@ import '../services/level_progress.dart';
 import '../services/audio_service.dart';
 import '../services/ad_service.dart';
 import '../utils/locale_helper.dart';
+import '../constants/calibrate.dart';
 
 class VictoryScreen extends StatelessWidget {
   final int levelId;
@@ -49,7 +50,7 @@ class VictoryScreen extends StatelessWidget {
         child: MockupScreen(
           screen: isTurkish() ? 'victory_tr' : 'victory',
           assetPath: localeAsset('victory'),
-          calibrateMode: false,
+          calibrateMode: kCalibrateMode,
           onNavigate: (target, id) => _navigate(context, target),
           overlayBuilder: (size) => [
             // Kategori resmi

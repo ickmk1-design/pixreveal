@@ -6,6 +6,7 @@ import '../widgets/mockup_screen.dart';
 import '../services/audio_service.dart';
 import '../services/purchase_service.dart';
 import '../utils/locale_helper.dart';
+import '../constants/calibrate.dart';
 
 class PaywallScreen extends StatefulWidget {
   const PaywallScreen({super.key});
@@ -67,7 +68,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
             MockupScreen(
               screen: 'paywall',
               assetPath: localeAsset('paywall'),
-              calibrateMode: false,
+              calibrateMode: kCalibrateMode,
               showBackButton: false,
               onNavigate: _onTap,
               overlayBuilder: _buildOverlays,
@@ -133,37 +134,39 @@ class _PaywallScreenState extends State<PaywallScreen> {
       color: Colors.white70,
     );
 
-    Widget priceContent(Package? pkg, String label, String sub) {
+    final renewalStyle = GoogleFonts.rajdhani(
+      fontSize: size.width * 0.022,
+      fontWeight: FontWeight.w500,
+      color: Colors.white54,
+    );
+
+    Widget priceContent(Package? pkg, String label, String periyot, String renewal) {
       if (_offeringsLoading) {
         return Column(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             Text(label, style: labelStyle, textAlign: TextAlign.center),
-            const SizedBox(height: 6),
             const SizedBox(
               width: 18,
               height: 18,
-              child: CircularProgressIndicator(
-                color: Color(0xFF00D4FF),
-                strokeWidth: 2,
-              ),
+              child: CircularProgressIndicator(color: Color(0xFF00D4FF), strokeWidth: 2),
             ),
-            const SizedBox(height: 4),
-            Text(sub, style: subStyle, textAlign: TextAlign.center),
+            Text(periyot, style: subStyle, textAlign: TextAlign.center),
+            Text(renewal, style: renewalStyle, textAlign: TextAlign.center),
           ],
         );
       }
       return Column(
-        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           Text(label, style: labelStyle, textAlign: TextAlign.center),
-          const SizedBox(height: 2),
           Text(
             pkg?.storeProduct.priceString ?? '—',
             style: priceStyle,
             textAlign: TextAlign.center,
           ),
-          Text(sub, style: subStyle, textAlign: TextAlign.center),
+          Text(periyot, style: subStyle, textAlign: TextAlign.center),
+          Text(renewal, style: renewalStyle, textAlign: TextAlign.center),
         ],
       );
     }
@@ -181,33 +184,31 @@ class _PaywallScreenState extends State<PaywallScreen> {
     );
 
     return [
-      // ── Monthly box: price centered inside ──────────────────────
+      // ── Monthly box: dikey dağılım başlık→fiyat→periyot→yenilenme ──
       Positioned(
         left: size.width * _monthlyX / 100,
         top: size.height * _monthlyY / 100,
         width: size.width * _monthlyW / 100,
         height: size.height * _monthlyH / 100,
-        child: Center(
-          child: priceContent(
-            _monthlyPackage,
-            tr ? 'AYLIK' : 'MONTHLY',
-            tr ? 'Her ay yenilenir' : 'Billed monthly',
-          ),
+        child: priceContent(
+          _monthlyPackage,
+          tr ? 'AYLIK' : 'MONTHLY',
+          tr ? '/ay' : '/mo',
+          tr ? 'Her ay yenilenir' : 'Billed monthly',
         ),
       ),
 
-      // ── Yearly box: price centered inside ───────────────────────
+      // ── Yearly box: dikey dağılım başlık→fiyat→periyot→yenilenme ──
       Positioned(
         left: size.width * _yearlyX / 100,
         top: size.height * _yearlyY / 100,
         width: size.width * _yearlyW / 100,
         height: size.height * _yearlyH / 100,
-        child: Center(
-          child: priceContent(
-            _yearlyPackage,
-            tr ? 'YILLIK' : 'YEARLY',
-            tr ? 'Her yıl yenilenir' : 'Billed annually',
-          ),
+        child: priceContent(
+          _yearlyPackage,
+          tr ? 'YILLIK' : 'YEARLY',
+          tr ? '/yıl' : '/yr',
+          tr ? 'Her yıl yenilenir' : 'Billed annually',
         ),
       ),
 

@@ -7,6 +7,7 @@ import '../services/lives_service.dart';
 import '../services/ad_service.dart';
 import '../services/token_service.dart';
 import '../utils/locale_helper.dart';
+import '../constants/calibrate.dart';
 
 class GameoverScreen extends StatefulWidget {
   final int levelId;
@@ -37,6 +38,7 @@ class _GameoverScreenState extends State<GameoverScreen> {
         child: MockupScreen(
           screen: isTurkish() ? 'gameover_tr' : 'gameover',
           assetPath: localeAsset('gameover'),
+          calibrateMode: kCalibrateMode,
           showBackButton: true,
           onBack: () {
             AudioService.play('button_click');
