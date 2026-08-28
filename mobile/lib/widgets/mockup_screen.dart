@@ -50,38 +50,25 @@ class _MockupScreenState extends State<MockupScreen> {
                     Positioned.fill(
                       child: Image.asset(widget.assetPath, fit: BoxFit.fill),
                     ),
-                    // Önceki tıklamaları göster
+                    // Önceki tıklama noktaları — küçük daire + numara
                     ..._taps.asMap().entries.map((e) {
                       final i = e.key;
                       final tap = e.value;
                       return Positioned(
-                        left: tap.dx - 16,
-                        top: tap.dy - 16,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              width: 32,
-                              height: 32,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.yellow.withValues(alpha: 0.7),
-                                border: Border.all(color: Colors.orange, width: 2),
-                              ),
-                              child: Center(
-                                child: Text('${i + 1}',
-                                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.black)),
-                              ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                              color: Colors.black.withValues(alpha: 0.8),
-                              child: Text(
-                                _labels[i],
-                                style: const TextStyle(fontSize: 8, color: Colors.yellow),
-                              ),
-                            ),
-                          ],
+                        left: tap.dx - 20,
+                        top: tap.dy - 20,
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.yellow.withValues(alpha: 0.85),
+                            border: Border.all(color: Colors.orange, width: 2.5),
+                          ),
+                          child: Center(
+                            child: Text('${i + 1}',
+                                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black)),
+                          ),
                         ),
                       );
                     }),
@@ -94,9 +81,7 @@ class _MockupScreenState extends State<MockupScreen> {
                           final ly = details.localPosition.dy;
                           final xPct = (lx / c.maxWidth * 100).toStringAsFixed(1);
                           final yPct = (ly / c.maxHeight * 100).toStringAsFixed(1);
-                          final label = 'x=$xPct% y=$yPct%';
-                          // ignore: avoid_print
-                          print('🎯 CALIBRATE: x=$xPct%, y=$yPct%  (raw: ${lx.toInt()},${ly.toInt()})');
+                          final label = 'x=$xPct  y=$yPct';
                           setState(() {
                             _taps.add(Offset(lx, ly));
                             _labels.add(label);
@@ -105,38 +90,57 @@ class _MockupScreenState extends State<MockupScreen> {
                         child: const ColoredBox(color: Colors.transparent, child: SizedBox.expand()),
                       ),
                     ),
-                    // Son tıklama bilgisi üstte
+                    // Büyük koordinat kutusu — ekranın ortasında, 2 sn sonra kaybolmaz
                     if (_labels.isNotEmpty)
                       Positioned(
-                        bottom: 12,
-                        left: 8,
-                        right: 8,
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.85),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            'Son tık: ${_labels.last}\nToplam: ${_taps.length} tıklama',
-                            style: const TextStyle(color: Colors.yellow, fontSize: 11),
-                            textAlign: TextAlign.center,
+                        top: c.maxHeight * 0.38,
+                        left: c.maxWidth * 0.05,
+                        right: c.maxWidth * 0.05,
+                        child: IgnorePointer(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.92),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: Colors.yellow, width: 2.5),
+                            ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  '#${_taps.length}  ${_labels.last}',
+                                  style: const TextStyle(
+                                    color: Colors.yellow,
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 1,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Tüm tıklamalar: ${_labels.join('  |  ')}',
+                                  style: const TextStyle(color: Colors.white70, fontSize: 13),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
                     // Temizle butonu
                     Positioned(
-                      top: 12,
-                      right: 12,
+                      top: 16,
+                      right: 16,
                       child: GestureDetector(
                         onTap: () => setState(() { _taps.clear(); _labels.clear(); }),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                           decoration: BoxDecoration(
-                            color: Colors.red.withValues(alpha: 0.8),
-                            borderRadius: BorderRadius.circular(8),
+                            color: Colors.red.withValues(alpha: 0.9),
+                            borderRadius: BorderRadius.circular(10),
                           ),
-                          child: const Text('TEMIZLE', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                          child: const Text('TEMIZLE', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
                         ),
                       ),
                     ),
