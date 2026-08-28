@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../constants/hotspots.dart';
 import 'screen_frame.dart';
@@ -36,6 +37,25 @@ class MockupScreen extends StatefulWidget {
 class _MockupScreenState extends State<MockupScreen> {
   final List<Offset> _taps = [];
   final List<String> _labels = [];
+
+  Widget _navBtn(BuildContext context, String label, String route) {
+    return GestureDetector(
+      onTap: () {
+        setState(() { _taps.clear(); _labels.clear(); });
+        context.go(route);
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: const Color(0xCC000000),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: const Color(0xFF00D4FF), width: 1),
+        ),
+        child: Text(label, style: const TextStyle(color: Color(0xFF00D4FF), fontSize: 12, fontWeight: FontWeight.bold)),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -142,6 +162,23 @@ class _MockupScreenState extends State<MockupScreen> {
                           ),
                           child: const Text('TEMIZLE', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
                         ),
+                      ),
+                    ),
+                    // Ekran geçiş butonları — sol üst köşe
+                    Positioned(
+                      top: 16,
+                      left: 8,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _navBtn(context, 'MENU',     '/menu'),
+                          _navBtn(context, 'PAYWALL',  '/paywall'),
+                          _navBtn(context, 'SHOP',     '/shop'),
+                          _navBtn(context, 'SETTINGS', '/settings'),
+                          _navBtn(context, 'VICTORY',  '/victory?level=1'),
+                          _navBtn(context, 'GAMEOVER', '/gameover?level=1'),
+                        ],
                       ),
                     ),
                   ],

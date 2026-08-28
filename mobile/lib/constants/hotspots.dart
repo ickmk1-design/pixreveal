@@ -19,21 +19,21 @@ class Hotspot {
 /// derived from the actual tap coordinates Ibo provided after tapping
 /// the exact center of each button.
 const Map<String, List<Hotspot>> kHotspots = {
-  // ─── MENU EN ──────────────────────────────────────────────────
-  // Reveal Zone PNG: PLAY pink y=59-71, SHOP white y=70-81, SETTINGS white y=80-91
+  // ─── MENU EN — gerçek cihaz kalibrasyonu (TR ile aynı PNG)
   'menu': [
-    Hotspot(id: 'coins',    x: 64, y: 0,   w: 36, h: 6,  target: 'shop',       label: 'Jeton'),
-    Hotspot(id: 'play',     x: 10, y: 58,  w: 80, h: 13, target: 'categories', label: 'PLAY'),
-    Hotspot(id: 'shop',     x: 16, y: 70,  w: 68, h: 11, target: 'shop',       label: 'SHOP'),
-    Hotspot(id: 'settings', x: 16, y: 80,  w: 68, h: 11, target: 'settings',   label: 'SETTINGS'),
+    Hotspot(id: 'coins',    x: 64, y: 0,    w: 36, h: 6,  target: 'shop',       label: 'Jeton'),
+    Hotspot(id: 'play',     x: 8,  y: 50.3, w: 84, h: 11, target: 'categories', label: 'PLAY'),
+    Hotspot(id: 'shop',     x: 8,  y: 62.4, w: 84, h: 11, target: 'shop',       label: 'SHOP'),
+    Hotspot(id: 'settings', x: 8,  y: 71.1, w: 84, h: 11, target: 'settings',   label: 'SETTINGS'),
   ],
 
-  // ─── MENU TR — Reveal Zone PNG: OYNA pink y=62-74, MAĞAZA white y=73-84, AYARLAR white y=83-93
+  // ─── MENU TR — gerçek iPhone kalibrasyonu 2026-08-28
+  // OYNA merkez y=55.3, MAĞAZA y=67.4, AYARLAR y=76.1
   'menu_tr': [
-    Hotspot(id: 'coins',    x: 64, y: 0,   w: 36, h: 6,  target: 'shop',       label: 'Jeton'),
-    Hotspot(id: 'play',     x: 10, y: 61,  w: 80, h: 13, target: 'categories', label: 'OYNA'),
-    Hotspot(id: 'shop',     x: 16, y: 73,  w: 68, h: 11, target: 'shop',       label: 'MAĞAZA'),
-    Hotspot(id: 'settings', x: 16, y: 83,  w: 68, h: 10, target: 'settings',   label: 'AYARLAR'),
+    Hotspot(id: 'coins',    x: 64, y: 0,    w: 36, h: 6,  target: 'shop',       label: 'Jeton'),
+    Hotspot(id: 'play',     x: 8,  y: 50.3, w: 84, h: 11, target: 'categories', label: 'OYNA'),
+    Hotspot(id: 'shop',     x: 8,  y: 62.4, w: 84, h: 11, target: 'shop',       label: 'MAĞAZA'),
+    Hotspot(id: 'settings', x: 8,  y: 71.1, w: 84, h: 11, target: 'settings',   label: 'AYARLAR'),
   ],
 
   // categories: native ekrana geçildi — hotspot listesi kaldırıldı (kalibrasyon yok).
