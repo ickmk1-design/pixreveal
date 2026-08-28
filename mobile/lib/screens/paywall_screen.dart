@@ -26,9 +26,9 @@ class _PaywallScreenState extends State<PaywallScreen> {
   // İçerik alanı — fiyat metni buraya çizilir
   static const double _monthlyX = 2,  _monthlyY = 57, _monthlyW = 44, _monthlyH = 15;
   static const double _yearlyX  = 50, _yearlyY  = 57, _yearlyW  = 33, _yearlyH  = 15; // w=33: %40 rozeti sağda kalır
-  // Seçim çerçevesi — PNG kutu sınırına tam oturacak şekilde (içerikten bağımsız)
-  static const double _monthlyBX = 4,  _monthlyBY = 55, _monthlyBW = 38, _monthlyBH = 17;
-  static const double _yearlyBX  = 51, _yearlyBY  = 55, _yearlyBW  = 44, _yearlyBH  = 17;
+  // Seçim çerçevesi — gerçek iPhone köşe kalibrasyonu 2026-08-28
+  static const double _monthlyBX = 11,  _monthlyBY = 51.5, _monthlyBW = 34, _monthlyBH = 21;
+  static const double _yearlyBX  = 53,  _yearlyBY  = 51.5, _yearlyBW  = 34, _yearlyBH  = 21;
   static const double _subscribeX = 8, _subscribeY = 79, _subscribeW = 84, _subscribeH = 10;
 
   @override
