@@ -23,9 +23,12 @@ class _PaywallScreenState extends State<PaywallScreen> {
   bool _offeringsLoading = true;
   bool _offeringsError = false;
 
-  // Price overlay coordinates match the visible box body (excluding RECOMMENDED badge)
+  // İçerik alanı — fiyat metni buraya çizilir
   static const double _monthlyX = 2,  _monthlyY = 57, _monthlyW = 44, _monthlyH = 15;
-  static const double _yearlyX  = 50, _yearlyY  = 57, _yearlyW  = 47, _yearlyH  = 15;
+  static const double _yearlyX  = 50, _yearlyY  = 57, _yearlyW  = 33, _yearlyH  = 15; // w=33: %40 rozeti sağda kalır
+  // Seçim çerçevesi — PNG kutu sınırına tam oturacak şekilde (içerikten bağımsız)
+  static const double _monthlyBX = 4,  _monthlyBY = 55, _monthlyBW = 38, _monthlyBH = 17;
+  static const double _yearlyBX  = 51, _yearlyBY  = 55, _yearlyBW  = 44, _yearlyBH  = 17;
   static const double _subscribeX = 8, _subscribeY = 79, _subscribeW = 84, _subscribeH = 10;
 
   @override
@@ -215,20 +218,20 @@ class _PaywallScreenState extends State<PaywallScreen> {
       // ── Selected border: monthly ─────────────────────────────────
       if (monthlySelected)
         Positioned(
-          left: size.width * _monthlyX / 100,
-          top: size.height * _monthlyY / 100,
-          width: size.width * _monthlyW / 100,
-          height: size.height * _monthlyH / 100,
+          left: size.width * _monthlyBX / 100,
+          top: size.height * _monthlyBY / 100,
+          width: size.width * _monthlyBW / 100,
+          height: size.height * _monthlyBH / 100,
           child: const DecoratedBox(decoration: selectedBorder),
         ),
 
       // ── Selected border: yearly (default + explicit) ─────────────
       if (yearlySelected)
         Positioned(
-          left: size.width * _yearlyX / 100,
-          top: size.height * _yearlyY / 100,
-          width: size.width * _yearlyW / 100,
-          height: size.height * _yearlyH / 100,
+          left: size.width * _yearlyBX / 100,
+          top: size.height * _yearlyBY / 100,
+          width: size.width * _yearlyBW / 100,
+          height: size.height * _yearlyBH / 100,
           child: const DecoratedBox(decoration: selectedBorder),
         ),
 
