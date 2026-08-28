@@ -1,7 +1,7 @@
 name: pixreveal
 description: Retro Arcade Puzzle - Qix/Gals Panic style territory capture game
 publish_to: 'none'
-version: 1.0.0+26
+version: 1.1.0+27
 
 environment:
   sdk: '>=3.2.0 <4.0.0'
