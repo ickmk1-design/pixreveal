@@ -46,13 +46,13 @@ class AdService {
 
   bool get isVip => EntitlementService.instance.isPremium;
 
-  /// Zorunlu sıra: ATT (iOS) → UMP (GDPR form) → MobileAds init → ad load.
-  /// Tracking izni / consent alınmadan reklam isteği GİTMEZ.
+  /// Sıra: UMP/GDPR formu → ATT (iOS) → MobileAds init → ad load.
+  /// Apple 5.1.1(iv): GDPR formu ATT'den ÖNCE gösterilmeli.
   Future<void> initialize() async {
     if (kIsWeb) return;
     debugPrint('[AdInit] START');
-    await _requestAttPermission();   // → _trackingAllowed set
-    await _requestConsent();         // → _umpAllowed set
+    await _requestConsent();         // 1) UMP/GDPR → _umpAllowed set
+    await _requestAttPermission();   // 2) ATT      → _trackingAllowed set
     debugPrint('[AdInit] Consent snapshot → tracking=$_trackingAllowed '
         'ump=$_umpAllowed → personalized=${_trackingAllowed && _umpAllowed}');
     debugPrint('[AdInit] MobileAds.initialize()');
