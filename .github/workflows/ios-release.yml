@@ -110,6 +110,15 @@ jobs:
           cd ios
           pod install --repo-update
 
+      - name: Set manual signing via xcode-project use-profiles
+        env:
+          KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+        run: |
+          export PATH="$HOME/Library/Python/3.11/bin:$HOME/Library/Python/3.12/bin:$HOME/Library/Python/3.13/bin:$PATH"
+          cd ios
+          xcode-project use-profiles
+
       - name: Build signed IPA
         run: |
           flutter build ipa --release \
