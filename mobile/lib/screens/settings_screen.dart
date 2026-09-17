@@ -146,9 +146,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       case 'restore':
         _restore();
       case 'privacy':
-        _launch('https://pixreveal.app/privacy');
+        _launch('https://cytbilisim.com/revealzone/privacy');
       case 'terms':
-        _launch('https://pixreveal.app/terms');
+        _launch('https://cytbilisim.com/revealzone/terms');
     }
   }
 
