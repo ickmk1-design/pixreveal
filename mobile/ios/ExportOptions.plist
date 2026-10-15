@@ -11,7 +11,7 @@
     <key>provisioningProfiles</key>
     <dict>
         <key>com.cytbilisim.pixreveal</key>
-        <string>PixReveal AppStore Dist</string>
+        <string>PixReveal AppStore CM</string>
     </dict>
     <key>stripSwiftSymbols</key>
     <true/>
