@@ -66,6 +66,18 @@ jobs:
         working-directory: mobile/ios
         run: pod install --repo-update
 
+      - name: Apply manual signing to Xcode project
+        run: |
+          UUID=$(security cms -D -i "$HOME/Library/MobileDevice/Provisioning Profiles/PixReveal.mobileprovision" 2>/dev/null \
+            | python3 -c "import sys,plistlib; p=plistlib.loads(sys.stdin.buffer.read()); print(p['UUID'])")
+          echo "Profile UUID: $UUID"
+          plutil -replace buildSettings.PROVISIONING_PROFILE -string "$UUID" \
+            ios/Runner.xcodeproj/project.pbxproj 2>/dev/null || true
+          sed -i '' \
+            -e "s/CODE_SIGN_STYLE = Automatic/CODE_SIGN_STYLE = Manual/g" \
+            -e "s/DEVELOPMENT_TEAM = \"\"/DEVELOPMENT_TEAM = 6DQ86Y62WC/g" \
+            ios/Runner.xcodeproj/project.pbxproj
+
       - name: Get next build number
         id: build_num
         env:
