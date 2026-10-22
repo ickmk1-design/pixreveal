@@ -116,13 +116,16 @@ jobs:
             --build-number=${{ steps.build_num.outputs.next }} \
             --export-options-plist ios/ExportOptions.plist \
             2>&1 | tee "$RUNNER_TEMP/flutter_build.log"
+          IPA_PATH=$(ls build/ios/ipa/*.ipa | head -1)
+          echo "IPA: $IPA_PATH"
+          echo "ipa_path=mobile/$IPA_PATH" >> "$GITHUB_ENV"
           echo "=== IPA(s) ==="
           ls -la build/ios/ipa/
 
       - name: Upload to TestFlight
         uses: apple-actions/upload-testflight-build@v3
         with:
-          app-path: mobile/build/ios/ipa/pixreveal.ipa
+          app-path: ${{ env.ipa_path }}
           issuer-id: ${{ secrets.ASC_ISSUER_ID }}
           api-key-id: ${{ secrets.ASC_KEY_ID }}
           api-private-key: ${{ secrets.ASC_PRIVATE_KEY }}
