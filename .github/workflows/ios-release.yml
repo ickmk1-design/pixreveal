@@ -26,8 +26,33 @@ jobs:
           channel: stable
           cache: true
 
-      - name: Install codemagic-cli-tools
-        run: pip3 install --user --break-system-packages codemagic-cli-tools
+      - name: Set up keychain
+        env:
+          CM_CERTIFICATE: ${{ secrets.CM_CERTIFICATE }}
+          CM_CERTIFICATE_PASSWORD: ${{ secrets.CM_CERTIFICATE_PASSWORD }}
+        run: |
+          KEYCHAIN_PW="$(openssl rand -hex 12)"
+          echo "KEYCHAIN_PW=$KEYCHAIN_PW" >> $GITHUB_ENV
+          security create-keychain -p "$KEYCHAIN_PW" build.keychain
+          security set-keychain-settings -lut 21600 build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "$KEYCHAIN_PW" build.keychain
+          printf '%s' "$CM_CERTIFICATE" | base64 --decode > /tmp/dist_cert.p12
+          security import /tmp/dist_cert.p12 \
+            -k build.keychain \
+            -P "$CM_CERTIFICATE_PASSWORD" \
+            -A -T /usr/bin/codesign -T /usr/bin/xcodebuild
+          security set-key-partition-list \
+            -S apple-tool:,apple:,codesign: \
+            -s -k "$KEYCHAIN_PW" build.keychain
+
+      - name: Set up provisioning profile
+        env:
+          CM_PROVISIONING_PROFILE: ${{ secrets.CM_PROVISIONING_PROFILE }}
+        run: |
+          PROFILES_DIR="$HOME/Library/MobileDevice/Provisioning Profiles"
+          mkdir -p "$PROFILES_DIR"
+          printf '%s' "$CM_PROVISIONING_PROFILE" | base64 --decode > "$PROFILES_DIR/PixReveal.mobileprovision"
 
       - name: Flutter pub get
         run: |
@@ -41,58 +66,19 @@ jobs:
         working-directory: mobile/ios
         run: pod install --repo-update
 
-      - name: Set up signing (fetch cert + profile via ASC)
-        env:
-          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
-          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
-          APPLE_SIGNING_PRIVATE_KEY: ${{ secrets.APPLE_SIGNING_PRIVATE_KEY }}
-        run: |
-          export PATH="$HOME/Library/Python/3.12/bin:$HOME/Library/Python/3.13/bin:$HOME/Library/Python/3.11/bin:$PATH"
-
-          PROFILES_DIR="$HOME/Library/MobileDevice/Provisioning Profiles"
-          mkdir -p "$PROFILES_DIR" /tmp/certs
-
-          app-store-connect fetch-signing-files "$BUNDLE_ID" \
-            --type IOS_APP_STORE \
-            --certificate-key @env:APPLE_SIGNING_PRIVATE_KEY \
-            --issuer-id "$ASC_ISSUER_ID" \
-            --key-id "$ASC_KEY_ID" \
-            --create \
-            --profiles-dir "$PROFILES_DIR" \
-            --certificates-dir /tmp/certs
-
-          KEYCHAIN_PW="$(openssl rand -hex 12)"
-          security create-keychain -p "$KEYCHAIN_PW" build.keychain
-          security set-keychain-settings -lut 21600 build.keychain
-          security unlock-keychain -p "$KEYCHAIN_PW" build.keychain
-          for cert in /tmp/certs/*.p12; do
-            security import "$cert" -k build.keychain -P "" -A \
-              -T /usr/bin/codesign -T /usr/bin/xcodebuild
-          done
-          security list-keychains -d user -s build.keychain \
-            $(security list-keychains -d user | sed s/\"//g)
-          security default-keychain -s build.keychain
-          security set-key-partition-list \
-            -S apple-tool:,apple:,codesign: \
-            -s -k "$KEYCHAIN_PW" build.keychain
-
-          xcode-project use-profiles \
-            --issuer-id "$ASC_ISSUER_ID" \
-            --key-id "$ASC_KEY_ID" \
-            --private-key @env:APPLE_SIGNING_PRIVATE_KEY
-
       - name: Get next build number
         id: build_num
         env:
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
-          APPLE_SIGNING_PRIVATE_KEY: ${{ secrets.APPLE_SIGNING_PRIVATE_KEY }}
+          ASC_PRIVATE_KEY: ${{ secrets.ASC_PRIVATE_KEY }}
         run: |
+          pip3 install --user --break-system-packages codemagic-cli-tools 2>/dev/null
           export PATH="$HOME/Library/Python/3.12/bin:$HOME/Library/Python/3.13/bin:$HOME/Library/Python/3.11/bin:$PATH"
           LATEST=$(app-store-connect get-latest-testflight-build-number "$APP_STORE_APP_ID" \
             --issuer-id "$ASC_ISSUER_ID" \
             --key-id "$ASC_KEY_ID" \
-            --private-key @env:APPLE_SIGNING_PRIVATE_KEY \
+            --private-key @env:ASC_PRIVATE_KEY \
             2>/dev/null || echo 0)
           [[ "$LATEST" =~ ^[0-9]+$ ]] || LATEST=0
           NEXT=$((LATEST + 1))
