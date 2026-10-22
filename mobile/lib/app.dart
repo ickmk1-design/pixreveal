@@ -1,9 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'routes.dart';
+import 'services/ad_service.dart';
 
-class PixRevealApp extends StatelessWidget {
+class PixRevealApp extends StatefulWidget {
   const PixRevealApp({super.key});
+
+  @override
+  State<PixRevealApp> createState() => _PixRevealAppState();
+}
+
+class _PixRevealAppState extends State<PixRevealApp> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      AdService.instance.preloadIfNeeded();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

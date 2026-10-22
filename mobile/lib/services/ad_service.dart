@@ -32,6 +32,7 @@ class AdService {
   RewardedAd? _rewarded;
   InterstitialAd? _interstitial;
   bool _initialized = false;
+  bool _isInterstitialLoading = false;
 
   // ── ATT / UMP izin durumu ────────────────────────────────────
   // Default FALSE — izin doğrulanana kadar personalized ad İSTEMEYİZ.
@@ -219,18 +220,21 @@ class AdService {
 
   // ── Interstitial ──────────────────────────────────────────────
   void _loadInterstitial() {
-    if (!_initialized) return;
+    if (!_initialized || _isInterstitialLoading || _interstitial != null) return;
+    _isInterstitialLoading = true;
     InterstitialAd.load(
       adUnitId: AdConfig.interstitialId,
       request: _buildAdRequest(),
       adLoadCallback: InterstitialAdLoadCallback(
         onAdLoaded: (ad) {
           _interstitial = ad;
+          _isInterstitialLoading = false;
           debugPrint('[AdService] Interstitial ad loaded OK');
         },
         onAdFailedToLoad: (error) {
           debugPrint('[AdService] Interstitial load failed: ${error.message}');
           _interstitial = null;
+          _isInterstitialLoading = false;
           // 30 saniye sonra tekrar dene
           Future.delayed(const Duration(seconds: 30), _loadInterstitial);
         },
@@ -272,10 +276,18 @@ class AdService {
   Future<void> showInterstitial() => _showInterstitial();
 
   Future<void> _showInterstitial() async {
+    // Wait up to 2s for an in-flight load before giving up.
+    if (_interstitial == null && _isInterstitialLoading) {
+      final deadline = DateTime.now().add(const Duration(seconds: 2));
+      while (_interstitial == null && _isInterstitialLoading &&
+          DateTime.now().isBefore(deadline)) {
+        await Future.delayed(const Duration(milliseconds: 100));
+      }
+    }
     final ad = _interstitial;
     if (ad == null) {
       debugPrint('[AdService] Interstitial not ready, loading...');
-      _loadInterstitial(); // yüklemeyi tetikle (bir sonraki cycle için)
+      _loadInterstitial();
       return;
     }
     debugPrint('[AdService] Showing interstitial...');
@@ -291,5 +303,11 @@ class AdService {
       },
     );
     await ad.show();
+  }
+
+  /// Called when app returns to foreground — re-preload if slot is empty.
+  void preloadIfNeeded() {
+    if (_interstitial == null && !_isInterstitialLoading) _loadInterstitial();
+    if (_rewarded == null) _loadRewarded();
   }
 }
