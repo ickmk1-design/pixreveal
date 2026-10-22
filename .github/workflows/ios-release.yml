@@ -106,7 +106,7 @@ jobs:
             2>/dev/null || echo 0)
           [[ "$LATEST" =~ ^[0-9]+$ ]] || LATEST=0
           NEXT=$((LATEST + 1))
-          [ "$NEXT" -lt 21 ] && NEXT=21
+          [ "$NEXT" -lt 24 ] && NEXT=24
           echo "next=$NEXT" >> "$GITHUB_OUTPUT"
           echo "Next build: $NEXT"
 
