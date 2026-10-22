@@ -66,18 +66,6 @@ jobs:
         working-directory: mobile/ios
         run: pod install --repo-update
 
-      - name: Apply manual signing to Xcode project
-        run: |
-          UUID=$(security cms -D -i "$HOME/Library/MobileDevice/Provisioning Profiles/PixReveal.mobileprovision" 2>/dev/null \
-            | python3 -c "import sys,plistlib; p=plistlib.loads(sys.stdin.buffer.read()); print(p['UUID'])")
-          echo "Profile UUID: $UUID"
-          plutil -replace buildSettings.PROVISIONING_PROFILE -string "$UUID" \
-            ios/Runner.xcodeproj/project.pbxproj 2>/dev/null || true
-          sed -i '' \
-            -e "s/CODE_SIGN_STYLE = Automatic/CODE_SIGN_STYLE = Manual/g" \
-            -e "s/DEVELOPMENT_TEAM = \"\"/DEVELOPMENT_TEAM = 6DQ86Y62WC/g" \
-            ios/Runner.xcodeproj/project.pbxproj
-
       - name: Get next build number
         id: build_num
         env:
@@ -100,10 +88,32 @@ jobs:
 
       - name: Build IPA
         run: |
-          flutter build ipa --release \
+          UUID=$(security cms -D -i "$HOME/Library/MobileDevice/Provisioning Profiles/PixReveal.mobileprovision" 2>/dev/null \
+            | python3 -c "import sys,plistlib; p=plistlib.loads(sys.stdin.buffer.read()); print(p['UUID'])")
+          echo "Profile UUID: $UUID"
+          flutter build ios --release --no-codesign \
             --build-number=${{ steps.build_num.outputs.next }} \
-            --export-options-plist ios/ExportOptions.plist \
             2>&1 | tee "$RUNNER_TEMP/flutter_build.log"
+          xcodebuild \
+            -workspace ios/Runner.xcworkspace \
+            -scheme Runner \
+            -configuration Release \
+            -archivePath /tmp/Runner.xcarchive \
+            archive \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="iPhone Distribution" \
+            PROVISIONING_PROFILE="$UUID" \
+            PROVISIONING_PROFILE_SPECIFIER="PixReveal AppStore CM" \
+            DEVELOPMENT_TEAM=6DQ86Y62WC \
+            2>&1 | tee -a "$RUNNER_TEMP/flutter_build.log"
+          mkdir -p build/ios/ipa
+          xcodebuild \
+            -exportArchive \
+            -archivePath /tmp/Runner.xcarchive \
+            -exportOptionsPlist ios/ExportOptions.plist \
+            -exportPath build/ios/ipa \
+            2>&1 | tee -a "$RUNNER_TEMP/flutter_build.log"
+          mv build/ios/ipa/Runner.ipa build/ios/ipa/pixreveal.ipa 2>/dev/null || true
           echo "=== IPA(s) ==="
           ls -la build/ios/ipa/
 
