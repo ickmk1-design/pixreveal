@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../widgets/mockup_screen.dart';
+import '../services/ad_service.dart';
 import '../services/audio_service.dart';
 import '../services/settings_service.dart';
 import '../services/purchase_service.dart';
@@ -146,10 +147,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
       case 'restore':
         _restore();
       case 'privacy':
-        _launch('https://cytbilisim.com/revealzone/privacy');
+        _handlePrivacy();
       case 'terms':
         _launch('https://cytbilisim.com/revealzone/terms');
     }
+  }
+
+  /// Google UMP requires an in-app entry point to the privacy options
+  /// form whenever PrivacyOptionsRequirementStatus.required. We hook it
+  /// onto the existing Privacy hotspot: when required, show the UMP
+  /// consent form; otherwise just open the policy URL.
+  Future<void> _handlePrivacy() async {
+    if (AdService.instance.privacyOptionsRequired) {
+      await AdService.instance.showPrivacyOptionsForm();
+      if (mounted) setState(() {});
+      return;
+    }
+    await _launch('https://cytbilisim.com/revealzone/privacy');
   }
 
   Future<void> _restore() async {

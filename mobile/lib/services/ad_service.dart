@@ -41,6 +41,12 @@ class AdService {
   bool _trackingAllowed = false; // iOS ATT authorized
   bool _umpAllowed = false;      // UMP obtained veya notRequired (non-EEA)
 
+  // ── canRequestAds hard gate (UMP GDPR compliance) ──────────────
+  bool _canRequestAds = false;
+  bool _privacyOptionsRequired = false;
+  bool get canRequestAds => _canRequestAds;
+  bool get privacyOptionsRequired => _privacyOptionsRequired;
+
   // Session-bazlı ölüm sayacı — uygulama kapanınca sıfırlanır.
   int _sessionDeaths = 0;
   static const int _deathsPerAd = 3;
@@ -53,15 +59,48 @@ class AdService {
     if (kIsWeb) return;
     debugPrint('[AdInit] START');
     await _requestConsent();         // 1) UMP/GDPR → _umpAllowed set
+    await _refreshConsentFlags();    // canRequestAds / privacyOptionsRequired
     await _requestAttPermission();   // 2) ATT      → _trackingAllowed set
     debugPrint('[AdInit] Consent snapshot → tracking=$_trackingAllowed '
-        'ump=$_umpAllowed → personalized=${_trackingAllowed && _umpAllowed}');
+        'ump=$_umpAllowed canRequestAds=$_canRequestAds '
+        '→ personalized=${_trackingAllowed && _umpAllowed}');
+    if (!_canRequestAds) {
+      debugPrint('[AdInit] canRequestAds=false — SKIPPING MobileAds.init');
+      return;
+    }
     debugPrint('[AdInit] MobileAds.initialize()');
     await MobileAds.instance.initialize();
     _initialized = true;
     debugPrint('[AdInit] DONE — loading ads');
     _loadRewarded();
     _loadInterstitial();
+  }
+
+  Future<void> _refreshConsentFlags() async {
+    try {
+      _canRequestAds = await ConsentInformation.instance.canRequestAds();
+      final req = await ConsentInformation.instance
+          .getPrivacyOptionsRequirementStatus();
+      _privacyOptionsRequired =
+          req == PrivacyOptionsRequirementStatus.required;
+    } catch (e) {
+      debugPrint('[UMP] refreshFlags error: $e');
+    }
+  }
+
+  /// Opens the UMP privacy options form. Call from Settings.
+  Future<void> showPrivacyOptionsForm() async {
+    try {
+      final c = Completer<void>();
+      ConsentForm.showPrivacyOptionsForm((error) {
+        if (error != null) debugPrint('[UMP] privacy form err: ${error.message}');
+        if (!c.isCompleted) c.complete();
+      });
+      await c.future;
+      await _refreshConsentFlags();
+    } catch (e) {
+      debugPrint('[UMP] showPrivacyOptionsForm err: $e');
+    }
   }
 
   // ── AdRequest builder — ATT + UMP izinlerine göre npa hesapla ──
@@ -165,6 +204,7 @@ class AdService {
   // ── Rewarded ──────────────────────────────────────────────────
   void _loadRewarded() {
     if (!_initialized) return;
+    if (!_canRequestAds) return;
     RewardedAd.load(
       adUnitId: AdConfig.rewardedId,
       request: _buildAdRequest(),
@@ -221,6 +261,7 @@ class AdService {
   // ── Interstitial ──────────────────────────────────────────────
   void _loadInterstitial() {
     if (!_initialized || _isInterstitialLoading || _interstitial != null) return;
+    if (!_canRequestAds) return;
     _isInterstitialLoading = true;
     InterstitialAd.load(
       adUnitId: AdConfig.interstitialId,
