@@ -51,7 +51,6 @@ enum GameCategory {
   animals,   // VAHŞİ HAYVANLAR
   beach,     // SAHİL
   fitness,   // FITNESS
-  ownImage,  // KENDİ FOTOĞRAFIN
   fantasy,   // FANTASTİK
 }
 
@@ -68,7 +67,6 @@ extension GameCategoryX on GameCategory {
       case GameCategory.animals:  return tr ? 'VAHŞİ HAYVANLAR'  : 'WILD ANIMALS';
       case GameCategory.beach:    return tr ? 'SAHİL'            : 'BEACH';
       case GameCategory.fitness:  return 'FITNESS';
-      case GameCategory.ownImage: return tr ? 'KENDİ FOTOĞRAFIN' : 'OWN PHOTO';
       case GameCategory.fantasy:  return tr ? 'FANTASTİK'        : 'FANTASY';
     }
   }
@@ -81,7 +79,6 @@ extension GameCategoryX on GameCategory {
       case GameCategory.animals:  return 'animal';
       case GameCategory.beach:    return 'glamour'; // dosya adları glamour_N.jpg — değiştirilmedi
       case GameCategory.fitness:  return 'fitness';
-      case GameCategory.ownImage: return 'custom';
       case GameCategory.fantasy:  return 'fantasy';
     }
   }

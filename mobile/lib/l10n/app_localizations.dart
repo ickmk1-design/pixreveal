@@ -158,12 +158,6 @@ abstract class AppLocalizations {
   /// **'FITNESS'**
   String get fitness;
 
-  /// No description provided for @yourOwnImage.
-  ///
-  /// In tr, this message translates to:
-  /// **'KENDİ FOTOĞRAFIN'**
-  String get yourOwnImage;
-
   /// No description provided for @victory.
   ///
   /// In tr, this message translates to:

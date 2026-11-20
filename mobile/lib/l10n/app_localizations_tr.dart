@@ -39,9 +39,6 @@ class AppLocalizationsTr extends AppLocalizations {
   String get fitness => 'FITNESS';
 
   @override
-  String get yourOwnImage => 'KENDİ FOTOĞRAFIN';
-
-  @override
   String get victory => 'ZAFER!';
 
   @override

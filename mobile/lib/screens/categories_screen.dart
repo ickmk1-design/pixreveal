@@ -56,8 +56,7 @@ class CategoriesScreen extends StatelessWidget {
 
   bool _isPremiumCategory(GameCategory cat) {
     return cat == GameCategory.beach ||
-        cat == GameCategory.fitness ||
-        cat == GameCategory.ownImage;
+        cat == GameCategory.fitness;
   }
 }
 
@@ -250,11 +249,6 @@ class _Thumbnail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // ownImage için özel ikon
-    if (category == GameCategory.ownImage) {
-      return _iconThumb(Icons.add_photo_alternate_outlined);
-    }
-
     final path = 'assets/images/${category.assetKey}_1.webp';
     return ClipRRect(
       borderRadius: const BorderRadius.only(
