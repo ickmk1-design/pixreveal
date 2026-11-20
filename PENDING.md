@@ -1,3 +1,27 @@
+## Crash/ANR monitoring eksikliği (2026-11-20 audit)
+
+- **Durum**: `mobile/pubspec.yaml` içinde `sentry_flutter` **yok**, `firebase_crashlytics` **yok**. `lib/main.dart` içinde hiçbir crash reporter init çağrısı yok.
+- **Risk**: Play Vitals düşük user sayılarında boş dönüyor (Google threshold); production crash/ANR sinyalini tamamen kaybediyoruz. Flutter engine Dart uncaught exception'ları veya platform channel crash'leri hiç görülmüyor.
+- **Yapılacak**: [bir sonraki build'den önce]
+  - `pubspec.yaml` → `sentry_flutter: ^8.x` ekle
+  - `lib/main.dart` → `main()` içinde:
+    ```dart
+    await SentryFlutter.init(
+      (o) {
+        o.dsn = const String.fromEnvironment('SENTRY_DSN');
+        o.environment = kReleaseMode ? 'production' : 'dev';
+        o.tracesSampleRate = 0.1;
+        o.anrEnabled = true; // Android ANR default true, explicit yine de
+      },
+      appRunner: () => runApp(const MyApp()),
+    );
+    ```
+  - `--dart-define=SENTRY_DSN=...` ile build (Codemagic env)
+- **DSN**: Sentry dashboard → ickmk org → yeni project `pixreveal-mobile` (platform=dart-flutter) aç, DSN al, Codemagic'e `SENTRY_DSN` olarak ekle
+- **Doğrulama**: Build sonrası ilk cihaz launch'tan 5 dk içinde `app:launch` breadcrumb Sentry'de görünmeli
+
+---
+
 # PixReveal / Reveal Zone — ASO PENDING
 
 **Durum (2026-11-20):** ⚠️ iOS 1.0 `WAITING_FOR_REVIEW` (Haziran 2026'dan beri; en son submit 2026-11-05). **ASC'ye DOKUNULMUYOR** — review bitene kadar hiçbir alan değiştirilmez.
