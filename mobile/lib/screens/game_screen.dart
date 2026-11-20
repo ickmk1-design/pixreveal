@@ -57,7 +57,7 @@ class _HudScreenState extends State<HudScreen> with TickerProviderStateMixin {
       (l) => l.id == widget.levelId,
       orElse: () => LevelManager.levels.first,
     );
-    _imageFile = '${CurrentCategory.current.assetKey}_${cfg.id}.jpg';
+    _imageFile = '${CurrentCategory.current.assetKey}_${cfg.id}.webp';
     // ignore: avoid_print
     print('GAME loading: cat=${CurrentCategory.current.name} file=$_imageFile');
 

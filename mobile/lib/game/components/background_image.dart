@@ -9,7 +9,7 @@ class BackgroundImage extends Component {
   final String imageFile;
   double _time = 0;
 
-  BackgroundImage({required this.gameBounds, this.imageFile = 'cars_1.jpg'});
+  BackgroundImage({required this.gameBounds, this.imageFile = 'cars_1.webp'});
 
   @override
   Future<void> onLoad() async {
@@ -19,7 +19,7 @@ class BackgroundImage extends Component {
     // when the player switches between levels/categories.
     Flame.images.clear(imageFile);
 
-    // Primary: the exact category-specific file (e.g. cars_1.jpg, space_3.jpg)
+    // Primary: the exact category-specific file (e.g. cars_1.webp, space_3.webp)
     try {
       _image = await Flame.images.load(imageFile);
       // ignore: avoid_print
@@ -34,7 +34,7 @@ class BackgroundImage extends Component {
     final parts = imageFile.split('_');
     if (parts.length >= 2) {
       final category = parts[0];
-      final fb1 = '${category}_1.jpg';
+      final fb1 = '${category}_1.webp';
       try {
         Flame.images.clear(fb1);
         _image = await Flame.images.load(fb1);
@@ -44,12 +44,12 @@ class BackgroundImage extends Component {
       } catch (_) {}
     }
 
-    // Fallback 2: cars_1.jpg always exists
+    // Fallback 2: cars_1.webp always exists
     try {
-      Flame.images.clear('cars_1.jpg');
-      _image = await Flame.images.load('cars_1.jpg');
+      Flame.images.clear('cars_1.webp');
+      _image = await Flame.images.load('cars_1.webp');
       // ignore: avoid_print
-      print('BG fallback 2: cars_1.jpg');
+      print('BG fallback 2: cars_1.webp');
       return;
     } catch (_) {}
 

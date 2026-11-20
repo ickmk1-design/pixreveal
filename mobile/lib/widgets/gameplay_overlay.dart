@@ -133,7 +133,7 @@ class _GameplayOverlayState extends State<GameplayOverlay>
                 ),
               ),
               child: Image.asset(
-                'assets/images/tarantula.png',
+                'assets/images/tarantula.webp',
                 fit: BoxFit.contain,
                 color: Colors.white,
                 colorBlendMode: BlendMode.modulate,

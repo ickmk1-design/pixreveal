@@ -9,7 +9,7 @@ class BackgroundImage extends Component {
   final String imageFile;
   double _time = 0;
 
-  BackgroundImage({required this.gameBounds, this.imageFile = 'level_1.jpg'});
+  BackgroundImage({required this.gameBounds, this.imageFile = 'level_1.webp'});
 
   @override
   Future<void> onLoad() async {
@@ -19,7 +19,7 @@ class BackgroundImage extends Component {
       // ignore: avoid_print
       print('Loaded image: $imageFile ${_image!.width}x${_image!.height}');
     } catch (_) {
-      try { _image = await Flame.images.load('level_1.jpg'); } catch (_) {}
+      try { _image = await Flame.images.load('level_1.webp'); } catch (_) {}
     }
   }
 

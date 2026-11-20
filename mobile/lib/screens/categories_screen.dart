@@ -255,7 +255,7 @@ class _Thumbnail extends StatelessWidget {
       return _iconThumb(Icons.add_photo_alternate_outlined);
     }
 
-    final path = 'assets/images/${category.assetKey}_1.jpg';
+    final path = 'assets/images/${category.assetKey}_1.webp';
     return ClipRRect(
       borderRadius: const BorderRadius.only(
         topLeft: Radius.circular(13),

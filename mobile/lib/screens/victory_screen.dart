@@ -42,7 +42,7 @@ class VictoryScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final imageAsset =
-        'assets/images/${CurrentCategory.current.assetKey}_$levelId.jpg';
+        'assets/images/${CurrentCategory.current.assetKey}_$levelId.webp';
 
     return Scaffold(
       backgroundColor: const Color(0xFF050510),

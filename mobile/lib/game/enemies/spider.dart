@@ -23,7 +23,7 @@ class Spider extends EnemyBase {
     final a = rng.nextDouble() * 2 * pi;
     velocity = Vector2(cos(a), sin(a)) * speed;
     try {
-      _sprite = await Flame.images.load('spider.png');
+      _sprite = await Flame.images.load('spider.webp');
     } catch (_) {}
   }
 

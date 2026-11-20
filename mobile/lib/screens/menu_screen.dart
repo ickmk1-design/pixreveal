@@ -44,7 +44,7 @@ class MenuScreen extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Image.asset(
-                          'assets/ui/coin_icon.png',
+                          'assets/ui/coin_icon.webp',
                           width: size.width * 0.06,
                           height: size.width * 0.06,
                         ),

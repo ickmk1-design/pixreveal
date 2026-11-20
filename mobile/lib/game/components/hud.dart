@@ -40,9 +40,9 @@ class Hud extends Component {
   Future<void> onLoad() async {
     for (final type in PowerUpType.values) {
       final path = switch (type) {
-        PowerUpType.freeze => 'powerup_freeze.png',
-        PowerUpType.speed  => 'powerup_speed.png',
-        PowerUpType.shield => 'powerup_shield.png',
+        PowerUpType.freeze => 'powerup_freeze.webp',
+        PowerUpType.speed  => 'powerup_speed.webp',
+        PowerUpType.shield => 'powerup_shield.webp',
       };
       try {
         _puSprites[type] = await Sprite.load(path);

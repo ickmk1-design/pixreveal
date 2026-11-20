@@ -58,7 +58,7 @@ class _GameoverScreenState extends State<GameoverScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Image.asset(
-                        'assets/ui/coin_icon.png',
+                        'assets/ui/coin_icon.webp',
                         width: size.height * 0.040,
                         height: size.height * 0.040,
                       ),

@@ -59,7 +59,7 @@ class PixRevealGame extends FlameGame with KeyboardEvents {
   final int _tokens;
   final String imageFile;
   PixRevealGame({required this.levelConfig, required this.lives, int tokens = 0,
-    this.imageFile = 'level_1.jpg'}) : _tokens = tokens;
+    this.imageFile = 'level_1.webp'}) : _tokens = tokens;
 
   @override
   Color backgroundColor() => const Color(0xFF050510);
@@ -118,9 +118,9 @@ class PixRevealGame extends FlameGame with KeyboardEvents {
     // Power-up PNG sprites
     for (final type in PowerUpType.values) {
       final path = switch (type) {
-        PowerUpType.freeze => 'powerup_freeze.png',
-        PowerUpType.speed  => 'powerup_speed.png',
-        PowerUpType.shield => 'powerup_shield.png',
+        PowerUpType.freeze => 'powerup_freeze.webp',
+        PowerUpType.speed  => 'powerup_speed.webp',
+        PowerUpType.shield => 'powerup_shield.webp',
       };
       try {
         _puImages[type] = await images.load(path);
