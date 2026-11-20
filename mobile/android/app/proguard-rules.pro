@@ -12,6 +12,8 @@
 
 # Google Mobile Ads
 -keep class com.google.android.gms.ads.** { *; }
+-dontwarn io.flutter.plugins.googlemobileads.R$layout
+-keep class io.flutter.plugins.googlemobileads.** { *; }
 
 # RevenueCat
 -keep class com.revenuecat.purchases.** { *; }

@@ -1,5 +1,6 @@
-import 'dart:ui' as ui;
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -13,47 +14,50 @@ import 'services/lives_service.dart';
 import 'services/ad_service.dart';
 import 'app.dart';
 
-Future<void> _debugPngSizes() async {
-  for (final name in [
-    'menu', 'categories', 'shop', 'settings', 'paywall', 'victory', 'gameover'
-  ]) {
-    try {
-      final data = await rootBundle.load('assets/images/$name.png');
-      final codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
-      final frame = await codec.getNextFrame();
-      // ignore: avoid_print
-      print('PNG $name: ${frame.image.width}x${frame.image.height}');
-    } catch (e) {
-      // ignore: avoid_print
-      print('PNG $name: ERROR $e');
-    }
+/// Run a Future with a timeout; swallow errors so startup never blocks.
+Future<void> _safe(String label, Future<void> Function() fn,
+    {Duration timeout = const Duration(seconds: 4)}) async {
+  try {
+    await fn().timeout(timeout);
+  } catch (e) {
+    // ignore: avoid_print
+    print('[startup] $label failed/slow: $e');
   }
+}
+
+Future<void> _initHeavyServices() async {
+  // All of the following touch native plugins, network, UMP/ATT dialogs, or
+  // preload large asset buffers. They MUST run after the first frame so the
+  // splash doesn't block the UI thread -> ANR on cold start.
+  await _safe('firebase', () async {
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  });
+  await _safe('rc.configure', () => PurchaseService.instance.configure());
+  _safe('entitlement.init', () async => EntitlementService.instance.init());
+  _safe('entitlement.refresh', () => EntitlementService.instance.refresh(),
+      timeout: const Duration(seconds: 6));
+  // AdService internally runs UMP form + ATT prompt + MobileAds.initialize —
+  // easily 5-10s on cold start. Fire-and-forget after first frame.
+  _safe('ads.initialize', () => AdService.instance.initialize(),
+      timeout: const Duration(seconds: 15));
+  _safe('audio.init', () => AudioService.instance.init(),
+      timeout: const Duration(seconds: 10));
 }
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  // Only SharedPreferences-backed loads run before first frame — they're
+  // essentially free (<50ms) and needed for initial routing decisions.
+  await _safe('settings.load', () => SettingsService.instance.load());
+  await _safe('lives.load', () => LivesService.instance.load());
+  await _safe('tokens.load', () => TokenService.instance.load());
 
-  await PurchaseService.instance.configure();
-  await TokenService.instance.load();
-  EntitlementService.instance.init();
-  await EntitlementService.instance.refresh();
-
-  await SettingsService.instance.load();
-  await LivesService.instance.load();
-  await AdService.instance.initialize();
-
-  // Preload audio files so first play has no delay.
-  await AudioService.instance.init();
-
-  await SystemChrome.setPreferredOrientations([
+  // Non-blocking — scheduled synchronously, no await.
+  SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
@@ -61,11 +65,15 @@ void main() async {
     ),
   );
 
-  await _debugPngSizes();
-
   runApp(
     const ProviderScope(
       child: PixRevealApp(),
     ),
   );
+
+  // Kick off the heavy init AFTER the first frame is scheduled.
+  SchedulerBinding.instance.addPostFrameCallback((_) {
+    // Microtask so we return to the event loop before plugin channels fire.
+    scheduleMicrotask(_initHeavyServices);
+  });
 }

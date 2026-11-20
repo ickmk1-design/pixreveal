@@ -30,5 +30,8 @@ mobile/android/.gradle/
 mobile/ios/Pods/
 mobile/pixreveal-upload.jks
 mobile/_ks_creds.env
+mobile/*.jks
+mobile/android_key.properties
+scripts/_vc31_apks.json
 flutter-build.log
 mobile/flutter-build.log
