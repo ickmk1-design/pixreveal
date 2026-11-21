@@ -35,3 +35,6 @@ mobile/android_key.properties
 scripts/_vc31_apks.json
 flutter-build.log
 mobile/flutter-build.log
+
+# Local smoke / WebP conversion evidence (screenshots, ~30 MB)
+mobile/scripts/webp_evidence/
